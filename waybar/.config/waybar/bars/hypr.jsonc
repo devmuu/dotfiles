@@ -199,24 +199,23 @@
     // custom modules
     "custom/clock_sh": {
         "escape": true,
-        "exec": "$HOME/.config/waybar/scripts/clock.sh",
+        "exec": "${HOME}/.config/waybar/scripts/clock.sh",
         "format": "{}",
-        "on-click": "kill -USR1 $(pgrep clock.sh)",
-        "on-click-right": "hyprctl dispatch togglespecialworkspace | kitty --class kitty-slide calcurse"
+        "on-click": "kill -USR1 $(pgrep clock.sh)"
     },
 
     "custom/keyboard": {
-        "exec": "~/.config/waybar/scripts/keyboard.sh",
+        "exec": "${HOME}/.config/waybar/scripts/keyboard.sh",
+        "format": "{}",
         "interval": 1,
-        "on-click": "fcitx5-remote -t",
-        "format": "{}"
+        "on-click": "fcitx5-remote -t"
     },
 
     "custom/wttr_in": {
         "escape": true,
         "exec": "${HOME}/.config/waybar/scripts/wttr_in.sh",
-        "interval": 3600,
         "format": "{}",
+        "interval": 3600,
         "max-length": 25
     }
 }
