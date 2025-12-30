@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program/File:  csv2plot
+# Description:   Plot data from csv file with gnuplot
+# Software/Tool: gnuplot
+# ==============================================================================
+
+FILENAME="${@}"
+BASENAME="${FILENAME%.*}"
+OUTPUT="${BASENAME}".svg
+
+gnuplot -persist <<-EOFMarker
+# Set the output to a svg file
+set terminal svg
+set datafile separator comma
+set key autotitle columnhead
+set title 'Scope Data ${BASENAME}'
+set xlabel "Time (s)"
+set ylabel "Voltage (V)"
+set grid xtics mxtics
+set grid ytics mytics
+
+set output '${OUTPUT}'
+plot \
+"${FILENAME}" using 1:2 ls 6 title "CH1" with lines, \
+"${FILENAME}" using 1:3 ls 2 title "CH2" with lines
+EOFMarker
+
+xdg-open "${OUTPUT}"

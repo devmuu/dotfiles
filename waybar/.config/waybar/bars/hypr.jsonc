@@ -1,0 +1,222 @@
+{
+    // configurations
+    "layer": "top",
+    "position": "top",
+    "height": 26,
+    "spacing": 18,
+
+    // include modules
+    "modules-left": [
+        "hyprland/workspaces",
+        "tray"
+    ],
+
+    "modules-center": [
+        "custom/clock_sh",
+        "custom/wttr_in"
+    ],
+
+    "modules-right": [
+        "bluetooth",
+        "pulseaudio",
+        "backlight",
+        "temperature",
+        "network",
+        "battery",
+        "custom/keyboard"
+    ],
+
+    // hyprland modules
+   "hyprland/window": {
+        "format": "{initialTitle}@@{class}@@{initialClass}"
+    },
+
+    "hyprland/workspaces": {
+        "all-outputs": true,
+        "current-only": false,
+        "disable-auto-back-and-forth": true,
+        "disable-scroll": true,
+        "disable-scroll-wraparound": true,
+        "format": "<sub>{icon}</sub>",
+        "show-special": false,
+        "window-format": "<span color='#e0e0e0'>{name}</span>",
+        "window-rewrite": {
+            "class<.*brave.*>": "",
+            "class<.*firefox.*>": "",
+            "class<.*keepass.*>": "🔑",
+            "class<kitty>": "🦊",
+            "title<.*amazon.*>": "",
+            "title<.*dotfiles.*>": "",
+            "title<.*drive.*>": "",
+            "title<.*github.*>": "",
+            "title<.*gitea.*>": "",
+            "title<.*gitlab.*>": "",
+            "title<.*google.*>": "",
+            "title<.*instagram.*>": "",
+            "title<.*mail.*>": "󰇮",
+            "title<.*micro.*>": "📗",
+            "title<.*python.*>": "",
+            "title<.*reddit.*>": "",
+            "title<.*spotify.*>": "",
+            "title<.*steam.*>": "",
+            "title<.*vlc.*>": "🎬",
+            "title<.*vim.*>": "",
+            "title<.*whatsapp.*>": "",
+            "title<.*youtube.*>": "",
+            "foot": "",
+            "code": "󰨞"
+        },
+        "window-rewrite-default": "🔵"
+    },
+
+    // general modules
+    "backlight": {
+        "format": "{percent}% {icon}",
+        "format-icons": ["🌑", "🌘", "🌗", "🌖", "🌕"]
+    },
+
+    "battery": {
+        "format": "{capacity}% {icon}",
+        "format-alt": "{time} {icon}",
+        "format-charging": "{capacity}% ",
+        "format-critical": "{capacity}% 🪫",
+        "format-full": "🔋",
+        "format-icons": ["", "", "", "", ""],
+        "format-plugged": "🔌",
+        "interval": 1,
+        "states": {
+            "critical": 10,
+            "good": 95,
+            "warning": 30
+        }
+    },
+
+    "bluetooth": {
+        "format": " {status}",
+        "format-connected": " {device_alias}",
+        "format-connected-battery": " {device_battery_percentage}%",
+        "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
+        "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",
+        "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_address}\t{device_battery_percentage}%"
+    },
+
+    "clock": {
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 1,
+            "weeks-pos": "right",
+            "on-scroll": 1,
+            "format": {
+                "months": "<span color='#ffead3'><b>{}</b></span>",
+                "days": "<span color='#ecc6d9'><b>{}</b></span>",
+                "weeks": "<span color='#99ffdd'><b>({})</b></span>",
+                "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+                "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+            }
+        },
+        "format": "🕛 {:%H:%M  🗓️ %d/%m} ",
+        "format-alt": "🗓️ {:%a, %d-%m-%Y}",
+        "on-click-right": "hyprctl dispatch togglespecialworkspace | kitty --class kitty-slide calcurse",
+        "timezone": "America/Sao_Paulo",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>"
+    },
+
+    "clock#week-day": {
+        "locale": "pt_BR",
+        "format": "{:%a}"
+    },
+
+    "cpu": {
+        "format": "{usage}% ",
+        "tooltip": false
+    },
+
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        }
+    },
+
+    "keyboard-state": {
+        "numlock": true,
+        "capslock": true,
+        "format": "{name} {icon}",
+        "format-icons": {
+            "locked": "🔒",
+            "unlocked": "🔓"
+        }
+    },
+
+    "memory": {
+        "format": "{}% "
+    },
+
+    "network": {
+        "format-alt": "{ifname}: {ipaddr}/{cidr}",
+        "format-disconnected": "Disconnected ⚠️",
+        "format-ethernet": "{ipaddr}/{cidr} 󰈀 ",
+        "format-linked": "{ifname} (No IP) 󰌹 ",
+        "format-wifi": "{signalStrength}% 🛜",
+        "tooltip-format": "{ifname} via {gwaddr}  "
+    },
+
+    "pulseaudio": {
+        "format": "{volume}% {icon} {format_source}",
+        "format-bluetooth": "{volume}% {icon}  {format_source}",
+        "format-bluetooth-muted": "󰝟 {icon}  {format_source}",
+        "format-icons": {
+            "car": "",
+            "default": ["", "", ""],
+            "hands-free": "󰕿",
+            "headphone": "🎧",
+            "headset": " ",
+            "phone": "",
+            "portable": ""
+        },
+        "format-muted": "󰝟 {format_source}",
+        "format-source": "{volume}% ",
+        "format-source-muted": " ",
+        "on-click-right": "hyprctl dispatch togglespecialworkspace | pavucontrol",
+        "scroll-step": 1
+    },
+
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C {icon}",
+        "format-critical": "{temperatureC}°C {icon}",
+        "format-icons": [" ", "🌡️", " "]
+    },
+
+    "tray": {
+        "show-passive-items": true,
+        "spacing": 10,
+        "reverse-direction": true
+    },
+
+    // custom modules
+    "custom/clock_sh": {
+        "escape": true,
+        "exec": "$HOME/.config/waybar/scripts/clock.sh",
+        "format": "{}",
+        "on-click": "kill -USR1 $(pgrep clock.sh)",
+        "on-click-right": "hyprctl dispatch togglespecialworkspace | kitty --class kitty-slide calcurse"
+    },
+
+    "custom/keyboard": {
+        "exec": "~/.config/waybar/scripts/keyboard.sh",
+        "interval": 1,
+        "on-click": "fcitx5-remote -t",
+        "format": "{}"
+    },
+
+    "custom/wttr_in": {
+        "escape": true,
+        "exec": "${HOME}/.config/waybar/scripts/wttr_in.sh",
+        "interval": 3600,
+        "format": "{}",
+        "max-length": 25
+    }
+}

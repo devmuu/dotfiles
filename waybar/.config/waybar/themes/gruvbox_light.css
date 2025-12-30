@@ -1,0 +1,22 @@
+/* gruvbox_light Theme */
+
+@define-color background #fbf1c7; /* background */
+@define-color foreground #3c3836; /* foreground */
+@define-color current_line #f3e5aa; /* current_line */
+@define-color comment #928374; /* comment */
+@define-color color0 #fbf1c7; /* black */
+@define-color color1 #cc241d; /* red */
+@define-color color2 #98971a; /* green */
+@define-color color3 #d79921; /* yellow */
+@define-color color4 #458588; /* blue */
+@define-color color5 #b16286; /* magenta */
+@define-color color6 #689d6a; /* cyan */
+@define-color color7 #7c6f64; /* white */
+@define-color color8 #282828; /* black bright */
+@define-color color9 #9d0006; /* red bright */
+@define-color color10 #79740e; /* green bright */
+@define-color color11 #b57614; /* yellow bright */
+@define-color color12 #076678; /* blue bright */
+@define-color color13 #8f3f71; /* magenta bright */
+@define-color color14 #427b58; /* cyan bright */
+@define-color color15 #928374; /* white bright */

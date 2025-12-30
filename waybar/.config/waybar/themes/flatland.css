@@ -1,0 +1,22 @@
+/* flatland Theme */
+
+@define-color background #1c1e20; /* background */
+@define-color foreground #b8daee; /* foreground */
+@define-color current_line #323436; /* current_line */
+@define-color comment #5D6259; /* comment */
+@define-color color0 #323436; /* black */
+@define-color color1 #f18238; /* red */
+@define-color color2 #9ed264; /* green */
+@define-color color3 #f3ef6d; /* yellow */
+@define-color color4 #4f96be; /* blue */
+@define-color color5 #695abb; /* magenta */
+@define-color color6 #d53864; /* cyan */
+@define-color color7 #fefffe; /* white */
+@define-color color8 #888888; /* black bright */
+@define-color color9 #d12a24; /* red bright */
+@define-color color10 #a7d32c; /* green bright */
+@define-color color11 #ff8948; /* yellow bright */
+@define-color color12 #61b8d0; /* blue bright */
+@define-color color13 #695abb; /* magenta bright */
+@define-color color14 #d53864; /* cyan bright */
+@define-color color15 #c8d2c8; /* white bright */

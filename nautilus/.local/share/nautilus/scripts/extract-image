@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       extract-image
+# Description:   Extract image from mp3 file
+# Software/Tool:
+# ==============================================================================
+
+for file in $NAUTILUS_SCRIPT_SELECTED_URIS; do
+
+    WORK_DIR=$(echo "$NAUTILUS_SCRIPT_CURRENT_URI" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+    FILENAME=$(echo "${file}" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+    BASENAME="${FILENAME%.*}"
+    EXT="${FILENAME##*.}"
+
+    case "${EXT}" in
+        mp3)
+            ffmpeg -i "${FILENAME}" "${BASENAME}".jpg
+        ;;
+        *)
+            echo "File not supported"
+        ;;
+    esac
+done

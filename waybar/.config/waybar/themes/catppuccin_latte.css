@@ -1,0 +1,22 @@
+/* catppuccin_latte Theme */
+
+@define-color background #eff1f5; /* background */
+@define-color foreground #4c4f69; /* foreground */
+@define-color current_line #e6e9ef; /* current_line */
+@define-color comment #206431; /* comment */
+@define-color color0 #5c5f77; /* black */
+@define-color color1 #d20f39; /* red */
+@define-color color2 #40a02b; /* green */
+@define-color color3 #df8e1d; /* yellow */
+@define-color color4 #1e66f5; /* blue */
+@define-color color5 #8839ef; /* magenta */
+@define-color color6 #04a5e5; /* cyan */
+@define-color color7 #dc8a78; /* white */
+@define-color color8 #6c6f85; /* black bright */
+@define-color color9 #e64553; /* red bright */
+@define-color color10 #179299; /* green bright */
+@define-color color11 #fe640b; /* yellow bright */
+@define-color color12 #7287fd; /* blue bright */
+@define-color color13 #ea76cb; /* magenta bright */
+@define-color color14 #209fb5; /* cyan bright */
+@define-color color15 #dd7878; /* white bright */

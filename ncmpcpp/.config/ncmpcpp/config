@@ -1,0 +1,148 @@
+## ncmpcpp config file. Edited based in default example locate in
+## /usr/share/doc/ncmpcpp/config
+
+# directories
+ncmpcpp_directory = ~/.config/ncmpcpp
+lyrics_directory = /tmp
+
+# script to show notification in song change
+# execute_on_song_change =
+
+# mpd config
+
+# in unix socket
+mpd_host = /run/user/1000/mpd/socket
+
+# in tcp
+# mpd_host = localhost
+# mpd_port = 6600
+
+mpd_connection_timeout = 5
+mpd_music_dir = ~/.local/share/media
+mpd_crossfade_time = 1
+
+# visualizer config
+visualizer_data_source = /tmp/mpd.fifo
+visualizer_output_name = Visualizer
+visualizer_in_stereo = yes
+visualizer_type = spectrum
+visualizer_fps = 120
+visualizer_autoscale = yes
+visualizer_look = "▌▌"
+visualizer_color = 47, 83, 119, 155, 191, 227, 221, 215, 209, 203, 197, 161
+visualizer_spectrum_smooth_look = yes
+visualizer_spectrum_dft_size = 1
+visualizer_spectrum_gain = 4
+visualizer_spectrum_hz_min = 20
+visualizer_spectrum_hz_max = 20000
+
+# character show when player identify tag separator in metadata
+tags_separator = ", "
+
+default_place_to_search_in = playlist
+empty_tag_marker = <empty>
+external_editor = nvim
+media_library_primary_tag = artist
+regular_expressions = perl
+screen_switcher_mode = playlist, browser
+space_add_mode = add_remove
+startup_screen = playlist
+startup_slave_screen = ""
+startup_slave_screen_focus = no
+user_interface = alternative
+
+# locked screen width (20-80). Remain values is set to slave screen.
+locked_screen_width_part = 60
+
+lines_scrolled = 5
+message_delay_time = 1
+playlist_disable_highlight_delay = -1
+seek_time = 2
+volume_change_step = 2
+
+# playlist mode: classic or columns (P key to switch)
+playlist_display_mode = classic
+
+playlist_editor_display_mode = classic
+playlist_separate_albums = no
+playlist_shorten_total_times = no
+playlist_show_mpd_host = no
+playlist_show_remaining_time = no
+
+allow_for_physical_item_deletion = no
+ask_before_clearing_playlists = no
+autocenter_mode = yes
+centered_cursor = yes
+clock_display_seconds = no
+colors_enabled = yes
+connected_message_on_startup = no
+cyclic_scrolling = no
+data_fetching_delay = yes
+display_bitrate = no
+display_remaining_time = no
+display_volume_level = yes
+enable_window_title = yes
+ignore_diacritics = yes
+header_text_scrolling = no
+header_visibility = no
+jump_to_now_playing_song_at_start = yes
+mouse_list_scroll_whole_page=yes
+mouse_support = yes
+show_duplicate_tags = no
+show_hidden_files_in_local_browser = no
+statusbar_visibility = no
+titles_visibility = no
+use_console_editor = yes
+
+# lyrics config
+follow_now_playing_lyrics = yes
+fetch_lyrics_for_current_song_in_background = no
+store_lyrics_in_song_dir = no
+
+# style formats
+progressbar_look = "▬▬▬"
+
+# a: song artist
+# A: album  artist
+
+song_status_format = {$2%a$2} {$3%b$3} {$5%t$5}
+song_library_format = %t
+song_window_title_format = {%A • %t}
+
+# playlist: classic format
+song_list_format =  $(red){ }$(end) $(red){%35a}$(end) • $(blue){%n}$(end) - $(blue){%t}$(end) $R $(green){%b}$(end)  $(blue){%d}$(end) $(magenta)  󰄉 {%l}$(end)
+
+# playlist: column format
+song_columns_list_format = (2f)[]{: } (25)[red]{a} (8)[green]{NEr} (36)[blue]{t|f:Title} (3f)[green]{d} (30)[cyan]{b} (6f)[magenta]{l}
+
+alternative_header_first_line_format  = {$b$4%A$9}{$1•$9}{$3%t$9}
+alternative_header_second_line_format = {$4%b$9} {$3(%y)$9}
+
+# colors
+active_window_border = red
+alternative_ui_separator_color = green:b
+color1 = white
+color2 = green
+empty_tag_color = cyan
+header_window_color = blue
+main_window_color = green
+player_state_color = default
+progressbar_color = black:b
+progressbar_elapsed_color = red:b
+state_flags_color = default:b
+state_line_color = default
+statusbar_color = default
+statusbar_time_color = default:b
+volume_color = default
+window_border_color = green
+
+# items prefix/suffix to show
+current_item_inactive_column_prefix = $b$5$/b
+current_item_inactive_column_suffix = $9
+modified_item_prefix = $3> $9
+selected_item_prefix = "$4#"
+selected_item_suffix = $9
+current_item_prefix = "$(magenta_16)"
+current_item_suffix = "$(end)"
+now_playing_prefix = "$b$4  󰎆$9"
+now_playing_suffix = "$/b"

@@ -1,0 +1,168 @@
+add_newline = true
+
+[battery]
+full_symbol = "󱟢"
+charging_symbol = "󰂄"
+discharging_symbol = "󰂃"
+format = '[$symbol$percentage]($style) '
+
+[[battery.display]]
+threshold = 50
+style = "bold #d9bb80"
+discharging_symbol = "󰁾"
+
+[[battery.display]]
+threshold = 40
+style = "bold #d9bb80"
+discharging_symbol = "󰁽"
+
+[[battery.display]]
+threshold = 30
+style = "bold #d9bb80"
+discharging_symbol = "󰁼"
+
+[[battery.display]]
+threshold = 20
+style = "bold #e68183"
+discharging_symbol = "󰁻"
+
+[[battery.display]]
+threshold = 10
+style = "bold #e68183"
+discharging_symbol = "󰁺"
+
+[character]
+success_symbol = "[➜](bold #a7c080)"
+error_symbol = "[✗](bold #e68183)"
+
+[cmd_duration]
+style = "bold #d9bb80"
+
+[container]
+symbol = ' '
+style = 'bold red'
+format = '[$symbol]($style) '
+disabled = false
+
+[directory]
+style = "bold #d9bb80"
+truncation_length = 2
+
+[git_branch]
+symbol = ' '
+style = "bold #d39bb6"
+
+[git_commit]
+commit_hash_length = 4
+tag_symbol = ' '
+
+[git_state]
+format = '[\($state( $progress_current of $progress_total)\)]($style) '
+cherry_pick = '[🍒 PICKING](bold red)'
+
+[git_metrics]
+added_style = 'bold blue'
+format = '[+$added]($added_style)/[-$deleted]($deleted_style) '
+
+[git_status]
+style = "bold #a7c080"
+modified = '[${count}󰝒 ](#d9bb80)'
+staged = '[${count}󱈖 ](#83b6af)'
+untracked = "[${count}󰩋 ](#e68183)"
+renamed = '[${count}󰬲 ](#87c095)'
+deleted = '[${count}󰮘 ](#e68183)'
+ahead = "[${count}󰩍](#a7c080)"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+behind = "⇣${count}"
+stashed = '[${count} ](#87c095)'
+
+[hostname]
+style = "bold #83b6af"
+ssh_only = false
+ssh_symbol = " "
+format = '[$ssh_symbol](bold #83b6af)[$hostname](bold #e68183) '
+disabled = false
+
+[localip]
+ssh_only = true
+format = '@[$localipv4](bold #e68183) '
+disabled = false
+
+[os]
+format = "[$symbol]($style) "
+style = "bold #83b6af"
+disabled = false
+
+[os.symbols]
+Alpine = " "
+Amazon = " "
+Android = " "
+Arch = " "
+CentOS = " "
+Debian = " "
+DragonFly = "🐉"
+Emscripten = "🔗"
+EndeavourOS = "🚀"
+Fedora = " "
+FreeBSD = " "
+Garuda = "🦅"
+Gentoo = " "
+HardenedBSD = "🛡️"
+Illumos = "🐦"
+Linux = " "
+Macos = " "
+Manjaro = " "
+Mariner = "🌊"
+MidnightBSD = "🌘"
+Mint = " "
+NetBSD = " "
+NixOS = " "
+OpenBSD = " "
+openSUSE = " "
+OracleLinux = "🦴"
+Pop = "🍭"
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+Redox = "🧪"
+Solus = "⛵"
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Windows = " "
+
+[package]
+disabled = true
+
+[sudo]
+style = "bold #e68183"
+symbol = " "
+disabled = true
+
+[time]
+time_format = "%T"
+format = " $time($style) "
+style = "bold #a7c080"
+disabled = true
+
+[username]
+format = "[$user]($style)"
+style_user = "bold #87c095"
+style_root = 'bold #e68183'
+disabled = true
+show_always = true
+
+[c]
+symbol = ''
+
+[lua]
+symbol = ''
+
+[python]
+symbol = ''
+
+[rlang]
+disabled = false
+symbol = ''
+format = 'with [$symbol $version](blue bold) '
+

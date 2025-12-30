@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Only a helper to show podman stats most friendly.
+
+OPT="$1"
+OPT_ARG="$2"
+
+network_list(){
+    POD_NAMES=( $(podman ps --size --sort names --format "{{.Names}} " | sed -z 's/\n//g;s/\$/\n/g') )
+
+    echo -e "--------------------------------------------"
+    echo -e "ContainerName  \t  IP  \t\tNetwork"
+    echo -e "--------------------------------------------"
+    for i in "${POD_NAMES[@]}"; do
+        ip=$(podman inspect -f "{{range.NetworkSettings.Networks}}{{.IPAddress}}  \t{{.NetworkID}} {{end}}" "$i";)
+        echo -e "$i  \t  $ip"
+    done
+    echo -e "--------------------------------------------"
+}
+
+ps_list(){
+    case $1 in
+        -a)
+            podman ps -a --sort names --format "{{.ID}} {{.Names}}"
+        ;;
+        *|"")
+            podman ps --sort names --format "{{.ID}} {{.Names}} {{.Ports}}"
+        ;;
+    esac
+}
+
+case "${OPT}" in
+    ps)
+        ps_list "${OPT_ARG}"
+    ;;
+    net)
+        network_list
+    ;;
+    *)
+        echo "Unknow options"
+    ;;
+esac

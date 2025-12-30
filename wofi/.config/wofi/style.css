@@ -1,0 +1,72 @@
+@import url(".config/waybar/themes/everforest_high.css");
+
+window {
+    background-color: @background;
+    border-radius: 10px;
+    border: 2px solid @current_line;
+    color: @foreground;
+    font-family: 'Noto Sans Mono', 'JetBrainsMono NF', monospace;
+    font-size: 15px;
+    margin: 5px;
+}
+
+#entry {
+    background-color: @background;
+}
+
+#entry.activatable #text {
+    color: @foreground;
+}
+
+#entry > * {
+    border: none;
+}
+
+#entry:selected {
+    background-color: @current_line;
+    border: none;
+    color: @color2;
+}
+
+#entry:selected #text {
+    font-weight: bold;
+    color: @foreground;
+}
+
+#input {
+    background-color: @current_line;
+    border: none;
+    color: @foreground;
+    /*margin: 5px;*/
+}
+
+#inner-box {
+    background-color: @background;
+    border: none;
+    color: @color2;
+    margin: 5px;
+}
+
+#outer-box {
+    background-color: @background;
+    border: none;
+    margin: 15px;
+}
+
+#scroll {
+    margin: 0px;
+    background-color: @background;
+    border: none;
+    color: @color2;
+    margin: 5px;
+}
+
+#text {
+    border: none;
+    color: @foreground;
+    margin: 5px;
+}
+
+#text:selected {
+    background-color: @current_line;
+}

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       decrypt
+# Description:   Decrypt files using gpg
+# Software/Tool: gpg
+# ==============================================================================
+
+for file in $NAUTILUS_SCRIPT_SELECTED_URIS; do
+    FILENAME="${@}"
+    BASENAME="${FILENAME%.*}"
+    EXT="${FILENAME##*.}"
+
+    case "${EXT}" in
+        asc|gpg)
+            kitty gpg --no-symkey-cache "${FILENAME}"
+        ;;
+        *)
+            echo 'file not encrypt with gpg'
+        ;;
+    esac
+done

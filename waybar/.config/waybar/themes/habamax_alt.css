@@ -1,0 +1,22 @@
+/* habamax_alt Theme */
+
+@define-color background #1c1c1c; /* background */
+@define-color foreground #e5e9f0; /* foreground */
+@define-color current_line #323232; /* current_line */
+@define-color comment #5e5e5e; /* comment */
+@define-color color0 #1c1c1c; /* black */
+@define-color color1 #af5f5f; /* red */
+@define-color color2 #5faf5f; /* green */
+@define-color color3 #af875f; /* yellow */
+@define-color color4 #5f87af; /* blue */
+@define-color color5 #af87af; /* magenta */
+@define-color color6 #5f8787; /* cyan */
+@define-color color7 #9e9e9e; /* white */
+@define-color color8 #1c1c1c; /* black bright */
+@define-color color9 #af5f5f; /* red bright */
+@define-color color10 #87d787; /* green bright */
+@define-color color11 #d7af87; /* yellow bright */
+@define-color color12 #d787d7; /* blue bright */
+@define-color color13 #d75f87; /* magenta bright */
+@define-color color14 #87afaf; /* cyan bright */
+@define-color color15 #767676; /* white bright */

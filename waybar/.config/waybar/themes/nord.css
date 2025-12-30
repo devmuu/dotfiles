@@ -1,0 +1,22 @@
+/* nord Theme */
+
+@define-color background #242933; /* background */
+@define-color foreground #e5e9f0; /* foreground */
+@define-color current_line #2F3441; /* current_line */
+@define-color comment #626f88; /* comment */
+@define-color color0 #4b565c; /* black */
+@define-color color1 #bf616a; /* red */
+@define-color color2 #a3be8c; /* green */
+@define-color color3 #ebcb8b; /* yellow */
+@define-color color4 #81a1c1; /* blue */
+@define-color color5 #b48ead; /* magenta */
+@define-color color6 #88c0d0; /* cyan */
+@define-color color7 #e5e9f0; /* white */
+@define-color color8 #81a1c1; /* black bright */
+@define-color color9 #bf616a; /* red bright */
+@define-color color10 #a3be8c; /* green bright */
+@define-color color11 #ebcb8b; /* yellow bright */
+@define-color color12 #81a1c1; /* blue bright */
+@define-color color13 #b48ead; /* magenta bright */
+@define-color color14 #88c0d0; /* cyan bright */
+@define-color color15 #e5e9f0; /* white bright */

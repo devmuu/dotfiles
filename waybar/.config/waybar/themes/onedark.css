@@ -1,0 +1,22 @@
+/* onedark Theme */
+
+@define-color background #21252c; /* background */
+@define-color foreground #abb2bf; /* foreground */
+@define-color current_line #2c323c; /* current_line */
+@define-color comment #4D5056; /* comment */
+@define-color color0 #4b565c; /* black */
+@define-color color1 #e06c75; /* red */
+@define-color color2 #98c379; /* green */
+@define-color color3 #e5c07b; /* yellow */
+@define-color color4 #61afef; /* blue */
+@define-color color5 #c678dd; /* magenta */
+@define-color color6 #56b6c2; /* cyan */
+@define-color color7 #abb2bf; /* white */
+@define-color color8 #98c379; /* black bright */
+@define-color color9 #e06c75; /* red bright */
+@define-color color10 #98c379; /* green bright */
+@define-color color11 #e5c07b; /* yellow bright */
+@define-color color12 #61afef; /* blue bright */
+@define-color color13 #c678dd; /* magenta bright */
+@define-color color14 #56b6c2; /* cyan bright */
+@define-color color15 #abb2bf; /* white bright */

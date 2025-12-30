@@ -1,0 +1,22 @@
+/* catppuccin_frappe Theme */
+
+@define-color background #303446; /* background */
+@define-color foreground #c6d0f5; /* foreground */
+@define-color current_line #414559; /* current_line */
+@define-color comment #737994; /* comment */
+@define-color color0 #232634; /* black */
+@define-color color1 #e78284; /* red */
+@define-color color2 #a6d189; /* green */
+@define-color color3 #e5c890; /* yellow */
+@define-color color4 #8caaee; /* blue */
+@define-color color5 #ca9ee6; /* magenta */
+@define-color color6 #99d1db; /* cyan */
+@define-color color7 #f2d5cf; /* white */
+@define-color color8 #292c3c; /* black bright */
+@define-color color9 #ea999c; /* red bright */
+@define-color color10 #81c8be; /* green bright */
+@define-color color11 #ef9f76; /* yellow bright */
+@define-color color12 #babbf1; /* blue bright */
+@define-color color13 #f4b8e4; /* magenta bright */
+@define-color color14 #85c1dc; /* cyan bright */
+@define-color color15 #eebebe; /* white bright */

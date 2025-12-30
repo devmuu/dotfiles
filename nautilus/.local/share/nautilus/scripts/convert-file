@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       convert-file
+# Description:   Convert files
+# Software/Tool:
+# ==============================================================================
+
+# List
+# epub -> mobi
+# md   -> pdf
+# odt  -> pdf
+# qmd  -> pdf
+# rmd  -> pdf
+# svg  -> pdf
+# tex  -> pdf
+# txt  -> pdf
+# webp -> jpg
+# wma -> mp3
+
+clean_tex(){
+rm -f *.acn *.acr *.alg *.aux *.bbl *.bcf *.blg *.dvi *.glg *.glo *.gls *.idx *.ilg *.ind *.ist *.loa *.lof *.log *.loq *.lot *.lsg *.maf *.mtc* *.nav *.nlo *.nls *.not *.ntn *.out *.snm *.toc *.xdy *.xml *~
+}
+
+make_tex(){
+  pdflatex "$1"
+  if grep '^\\addbibresource' $1; then
+    biber "$2";
+  fi
+  pdflatex "$1"
+}
+
+notify-send "Nautilus Script" "Init conversion file."
+
+for file in $NAUTILUS_SCRIPT_SELECTED_URIS; do
+
+    WORK_DIR=$(echo "$NAUTILUS_SCRIPT_CURRENT_URI" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+    FILENAME=$(echo "${file}" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+    BASENAME="${FILENAME%.*}"
+    EXT="${FILENAME##*.}"
+
+    case "${EXT}" in
+        epub)
+            ebook-convert "${FILENAME}" "${BASENAME}".mobi
+        ;;
+        odt)
+            libreoffice --headless --convert-to pdf "${file}"
+        ;;
+        qmd)
+            quarto render "${FILENAME}"
+        ;;
+        rmd|Rmd)
+            R -e "rmarkdown::render(\"${FILENAME}\")"
+        ;;
+        svg)
+            inkscape --export-type="pdf" --export-width=300 "${file}"
+        ;;
+        tex)
+            make_tex "${FILENAME}" "${BASENAME}"
+            clean_tex
+        ;;
+        wma|m4a)
+            ffmpeg -i "${FILENAME}" -ab 320k -f mp3 "${BASENAME}.mp3"
+        ;;
+        mp3)
+            ffmpeg -i "${FILENAME}" -ab 320k -f mp3 "${BASENAME}_new.mp3"
+        ;;
+        webp)
+            magick "${FILENAME}" "${BASENAME}.jpg"
+        ;;
+    esac
+done
+
+notify-send "Nautilus Script" "Convert Done."

@@ -1,0 +1,75 @@
+#!/usr/bin/env zsh
+
+# ==============================================================================
+# Program/File:  aliases
+# Description:   Custom system aliases
+# Software/Tool: shell
+# ==============================================================================
+
+DISTRO=$(source /etc/os-release; echo $NAME | awk '{print tolower($1)}')
+
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
+alias .....="cd ../../../.."
+
+alias zs="source ~/.zshrc"
+alias path='echo -e "${PATH//:/\\n}"|sort'
+
+# ls aliases
+alias ls='/bin/ls --hyperlink --color=always --group-directories-first'
+alias la='/bin/ls -lha --hyperlink --color=always --group-directories-first'
+
+# exa aliases
+alias exa='exa --icons --color=always --group-directories-first'
+alias ll='exa -Ghla --icons --color=always --group-directories-first --octal-permissions --no-filesize --no-time'
+
+# general aliases
+alias dconf-list='gsettings list-recursively | grep -i --color'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias genpass='pwgen -c -s -y -n -N1 50'
+alias gnome-logout='gnome-session-quit --logout --no-prompt'
+alias gpg='gpg --no-symkey-cache'
+alias grep='grep --color=auto'
+alias history='history 1'
+alias icat='kitten icat --stdin=no --use-window-size $COLUMNS,$LINES,800,800 --transfer-mode=file'
+alias luarun="lua -e 'package.cpath=\"./lib/?.so\"'"
+alias mailseed='pwgen -A -B -s -n -r b,c,d,f,g,h,j,k,l,m,n,p,q,r,s,t,v -N1 5'
+alias open='xdg-open'
+alias pyclean="find . -regex '^.*\(__pycache__\|\.py[co]\)$' -delete"
+alias R='R --no-save'
+alias remove='shred -n3 --remove'
+alias rsynk='rsync -azvh --inplace --no-whole-file --info=progress2'
+alias startproject='kitty --session ~/.config/kitty/sessions/project.conf'
+alias show-stats='stat -c "%a %A %U %G" $filename | lolcat'
+alias v='nvim'
+alias y='yazi'
+alias ym="yazi /run/media/${USER}"
+alias yp="yazi ${PROJECTS_DIR}"
+# alias vi='sudoedit'
+
+# git aliases
+alias gc='git commit -m'
+alias gd='git -P diff'
+alias gl='git push local main'
+alias glog='git -P log --reverse | bat -Pp --theme base16'
+alias gpo='git push origin main'
+alias gpl='git push local main'
+alias gs='git status'
+
+# aliases by distros
+case "$DISTRO" in
+    manjaro|arch)
+        alias clean="sudo pacman -Rs $(pacman -Qdtq)"
+        alias cat='bat -p --theme ansi'
+    ;;
+    fedora)
+        alias clean="sudo dnf autoremove"
+        alias cat='bat -p --theme ansi'
+    ;;
+    ubuntu|debian)
+        alias clean="sudo apt autoremove"
+        alias cat='batcat'
+    ;;
+esac

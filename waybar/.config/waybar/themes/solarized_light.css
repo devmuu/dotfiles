@@ -1,0 +1,22 @@
+/* solarized_light Theme */
+
+@define-color background #fdf6e3; /* background */
+@define-color foreground #52676f; /* foreground */
+@define-color current_line #073642; /* current_line */
+@define-color comment #657b83; /* comment */
+@define-color color0 #4b565c; /* black */
+@define-color color1 #dc322f; /* red */
+@define-color color2 #859900; /* green */
+@define-color color3 #b58900; /* yellow */
+@define-color color4 #1e6da5; /* blue */
+@define-color color5 #d33682; /* magenta */
+@define-color color6 #2aa097; /* cyan */
+@define-color color7 #eee8d5; /* white */
+@define-color color8 #2aa097; /* black bright */
+@define-color color9 #dc322f; /* red bright */
+@define-color color10 #859900; /* green bright */
+@define-color color11 #cb4b16; /* yellow bright */
+@define-color color12 #6c71c4; /* blue bright */
+@define-color color13 #d33682; /* magenta bright */
+@define-color color14 #2aa097; /* cyan bright */
+@define-color color15 #839496; /* white bright */

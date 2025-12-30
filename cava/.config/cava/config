@@ -1,0 +1,48 @@
+## Configuration file for CAVA.
+
+[general]
+sensitivity = 100
+bars = 0
+bar_width = 1
+bar_spacing = 1
+
+[input]
+method = pulse
+source = auto
+
+[output]
+method = ncurses
+orientation = bottom
+channels = stereo
+mono_option = average
+reverse = 0
+xaxis = none
+
+[color]
+gradient = 1
+gradient_count = 8
+
+# background = '#20272C'
+# foreground = '#a7c080'
+
+# everforest_high
+gradient_color_1 = '#a7c080'
+gradient_color_2 = '#87c095'
+gradient_color_3 = '#87c095'
+gradient_color_4 = '#83b6af'
+gradient_color_5 = '#d39bb6'
+gradient_color_6 = '#d39bb6'
+gradient_color_7 = '#e68183'
+gradient_color_8 = '#e68183'
+
+[smoothing]
+monstercat = 1
+waves = 0
+noise_reduction = 40
+
+[eq]
+; 1 = 1 # bass
+; 2 = 1
+; 3 = 1 # midtone
+; 4 = 1
+; 5 = 1 # treble

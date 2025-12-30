@@ -1,0 +1,22 @@
+/* catppuccin_macchiato Theme */
+
+@define-color background #24273a; /* background */
+@define-color foreground #cad3f5; /* foreground */
+@define-color current_line #363a4f; /* current_line */
+@define-color comment #a5adcb; /* comment */
+@define-color color0 #181926; /* black */
+@define-color color1 #ed8796; /* red */
+@define-color color2 #a6da95; /* green */
+@define-color color3 #eed49f; /* yellow */
+@define-color color4 #8aadf4; /* blue */
+@define-color color5 #c6a0f6; /* magenta */
+@define-color color6 #8bd5ca; /* cyan */
+@define-color color7 #f4dbd6; /* white */
+@define-color color8 #1e2030; /* black bright */
+@define-color color9 #ee99a0; /* red bright */
+@define-color color10 #8bd5ca; /* green bright */
+@define-color color11 #f5a97f; /* yellow bright */
+@define-color color12 #b7bdf8; /* blue bright */
+@define-color color13 #f5bde6; /* magenta bright */
+@define-color color14 #91d7e3; /* cyan bright */
+@define-color color15 #f0c6c6; /* white bright */

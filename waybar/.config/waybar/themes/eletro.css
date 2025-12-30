@@ -1,0 +1,22 @@
+/* eletro Theme */
+
+@define-color background #081F1E; /* background */
+@define-color foreground #d7dad7; /* foreground */
+@define-color current_line #203534; /* current_line */
+@define-color comment #394b4a; /* comment */
+@define-color color0 #081F1E; /* black */
+@define-color color1 #8E202C; /* red */
+@define-color color2 #5f8833; /* green */
+@define-color color3 #E9A600; /* yellow */
+@define-color color4 #2b7d5a; /* blue */
+@define-color color5 #E681F5; /* magenta */
+@define-color color6 #39CEFE; /* cyan */
+@define-color color7 #F4F2EE; /* white */
+@define-color color8 #081F1E; /* black bright */
+@define-color color9 #792B17; /* red bright */
+@define-color color10 #5f8833; /* green bright */
+@define-color color11 #FF8500; /* yellow bright */
+@define-color color12 #2b7d5a; /* blue bright */
+@define-color color13 #E681F5; /* magenta bright */
+@define-color color14 #39CEFE; /* cyan bright */
+@define-color color15 #F4F2EE; /* white bright */

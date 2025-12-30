@@ -1,0 +1,7 @@
+<ctrl><alt>c jpgcover
+<ctrl><alt>f open-nvim
+<ctrl><alt>g mp3-tag
+<ctrl><alt>k extract-image
+<ctrl><alt>m open-metadata
+<ctrl><alt>p csv2plot
+<ctrl><alt>t term

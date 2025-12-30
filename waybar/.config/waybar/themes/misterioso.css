@@ -1,0 +1,22 @@
+/* misterioso Theme */
+
+@define-color background #2d3743; /* background */
+@define-color foreground #e1e1e0; /* foreground */
+@define-color current_line #2F3441; /* current_line */
+@define-color comment #626f88; /* comment */
+@define-color color0 #000000; /* black */
+@define-color color1 #ff4141; /* red */
+@define-color color2 #74ae68; /* green */
+@define-color color3 #ffac28; /* yellow */
+@define-color color4 #338e86; /* blue */
+@define-color color5 #9413e5; /* magenta */
+@define-color color6 #23d6d6; /* cyan */
+@define-color color7 #e1e1df; /* white */
+@define-color color8 #545454; /* black bright */
+@define-color color9 #ff3241; /* red bright */
+@define-color color10 #74cc68; /* green bright */
+@define-color color11 #ffb928; /* yellow bright */
+@define-color color12 #23d6d6; /* blue bright */
+@define-color color13 #ff37ff; /* magenta bright */
+@define-color color14 #00ece1; /* cyan bright */
+@define-color color15 #ffffff; /* white bright */

@@ -1,0 +1,22 @@
+/* dracula Theme */
+
+@define-color background #282a36; /* background */
+@define-color foreground #f8f8f2; /* foreground */
+@define-color current_line #2F313E; /* current_line */
+@define-color comment #52545e; /* comment */
+@define-color color0 #000000; /* black */
+@define-color color1 #ff5555; /* red */
+@define-color color2 #50fa7b; /* green */
+@define-color color3 #f1fa8c; /* yellow */
+@define-color color4 #bd93f9; /* blue */
+@define-color color5 #ff79c6; /* magenta */
+@define-color color6 #8Be9fd; /* cyan */
+@define-color color7 #f8f8f2; /* white */
+@define-color color8 #bd93f9; /* black bright */
+@define-color color9 #ff5555; /* red bright */
+@define-color color10 #50fa7b; /* green bright */
+@define-color color11 #ffb86c; /* yellow bright */
+@define-color color12 #bd93f9; /* blue bright */
+@define-color color13 #ff79c6; /* magenta bright */
+@define-color color14 #8Be9fd; /* cyan bright */
+@define-color color15 #ffffff; /* white bright */

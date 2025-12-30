@@ -1,0 +1,85 @@
+# Default config for imv
+
+[options]
+background = #1c1c1c
+
+fullscreen = false
+
+width = 1280
+height = 720
+
+initial_pan = 50 50
+list_files_at_exit = false
+loop_input = true
+
+overlay = true
+overlay_font = MesloLGS NF:12
+overlay_text = $(echo "|  ${imv_current_index}/${imv_file_count} | 󱇑 ${imv_width}x${imv_height} (${imv_scale}%) |  $(basename "${imv_current_file}") |")
+overlay_text_color = #404040
+overlay_text_alpha = #ff
+overlay_background_color = #7ba97c
+overlay_background_alpha = #ff
+overlay_position_bottom = false
+
+recursively = false
+scaling_mode = full
+slideshow_duration = 0
+suppress_default_binds = true
+title_text =  $(basename $(dirname "${imv_current_file}") | sed "s;${HOME};~;")
+upscaling_method = linear
+
+[aliases]
+run = exec
+
+[binds]
+1 = background ffffff
+2 = background aaaaaa
+3 = background 000000
+4 = background 282a36
+5 = background 282828
+6 = background dddddd
+
+# Other commands
+a = zoom actual
+b = overlay
+c = center
+d = overlay
+e = exec magick $imv_current_file -resize 200x200! $HOME/Pictures/folder.png
+f = fullscreen
+gg = goto 1
+h = pan 50 0
+i = zoom 1
+j = pan 0 -50
+k = pan 0 50
+l = pan -50 0
+m = exec mogrify -blur 0x10 $imv_current_file; reset
+o = zoom -1
+x = close
+p = exec cp $imv_current_file $HOME/Pictures/
+q = quit
+r = reset
+s = scaling next
+t = slideshow +1
+w = exec echo -n $imv_current_file | sed 's/\n//g' | wl-copy
+y = exec magick $imv_current_file ~/dotfiles/hyprland/.config/hypr/theme/wall.jpg && hyprctl hyprpaper wallpaper 'eDP-1, ~/.config/hypr/theme/wall.jpg, fill' &
+
+<Delete> = exec rm "$imv_current_file"; close
+
+<Up> = zoom 1
+<Down> = zoom -1
+<Left> = prev
+<Right> = next
+
+<bracketleft> = prev
+<bracketright> = next
+
+<minus> = zoom -1
+<period> = next_frame
+<space> = toggle_playing
+
+<Ctrl+r> = rotate by 90
+
+<Shift+G> = goto -1
+<Shift+S> = upscaling next
+<Shift+T> = slideshow -1
+<Shift+plus> = zoom 1

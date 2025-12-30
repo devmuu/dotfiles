@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       run-file
+# Description:   Run some file in nautilus
+# Software/Tool: Nautilus/bash
+# ==============================================================================
+
+FILENAME="${@}"
+
+case "${FILENAME}" in
+    Makefile)
+        make;;
+    *.tex)
+        pdflatex "${FILENAME}";;
+    *.py)
+        python "${FILENAME}";;
+    *.gpi)
+        gnuplot "${FILENAME}";;
+    *.sh)
+        sh "${FILENAME}";;
+    *.html)
+        firefox "${FILENAME}";;
+esac

@@ -1,0 +1,59 @@
+# Default font
+set font "JetBrainsMono Nerd Font 12"
+
+# Colors
+set statusbar-bg "rgb(25, 40, 44)"
+set statusbar-fg "rgb(235, 219, 178)"
+set inputbar-bg "rgb(29, 32, 33)"
+set inputbar-fg "rgb(235, 219, 178)"
+set default-bg "rgba(29, 32, 33, 1)"
+set highlight-color "rgba(100, 255, 100, 0.50)"
+set highlight-active-color "rgba(255, 100, 100, 0.50)"
+set recolor-lightcolor "rgb(40, 40, 40)"
+set recolor-darkcolor "rgb(235, 219, 178)"
+set recolor-keephue
+
+set abort-clear-search true
+set adjust-open best-fit
+set guioptions ''
+set page-padding 2
+set render-loading false
+set scroll-full-overlap 0.01
+set scroll-page-aware true
+set selection-clipboard clipboard
+set selection-notification false
+set statusbar-basename true
+set statusbar-h-padding 0
+set statusbar-v-padding 0
+set window-title-basename true
+set zoom-step 10
+
+# Enable pdf sync with text editor
+set synctex true
+
+# Mappings
+map K zoom in
+map J zoom out
+map i recolor
+map p print
+map r reload
+map ( rotate rotate-ccw
+map ) rotate rotate-cw
+map [ scroll half-up
+map ] scroll half-down
+map f toggle_fullscreen
+map <Left> navigate previous
+map <Right> navigate next
+map <Up> scroll half-up
+map <Down> scroll half-down
+map <C-b> toggle_statusbar
+map <C-z> feedkeys "99zz"
+map [fullscreen] f toggle_fullscreen
+map [fullscreen] = zoom in
+map [fullscreen] - zoom out
+map [fullscreen] <Right> navigate next
+map [fullscreen] <Left> navigate previous
+map [fullscreen] i recolor
+# map <Button1> navigate previous
+# map <Button3> navigate next
+

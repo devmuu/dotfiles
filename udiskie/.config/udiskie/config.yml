@@ -1,0 +1,4 @@
+program_options:
+  terminal: 'kitty /usr/bin/yazi'
+  automount: true
+  tray: auto

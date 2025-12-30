@@ -1,0 +1,22 @@
+/* papercolor Theme */
+
+@define-color background #f3f3f3; /* background */
+@define-color foreground #4d4d4c; /* foreground */
+@define-color current_line #dedede; /* current_line */
+@define-color comment #878787; /* comment */
+@define-color color0 #4b565c; /* black */
+@define-color color1 #af0000; /* red */
+@define-color color2 #5faf00; /* green */
+@define-color color3 #d75f00; /* yellow */
+@define-color color4 #005f87; /* blue */
+@define-color color5 #af005f; /* magenta */
+@define-color color6 #005f87; /* cyan */
+@define-color color7 #585858; /* white */
+@define-color color8 #005f87; /* black bright */
+@define-color color9 #af0000; /* red bright */
+@define-color color10 #5faf00; /* green bright */
+@define-color color11 #d75f00; /* yellow bright */
+@define-color color12 #005f87; /* blue bright */
+@define-color color13 #af005f; /* magenta bright */
+@define-color color14 #005f87; /* cyan bright */
+@define-color color15 #585858; /* white bright */

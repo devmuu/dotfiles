@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       jpgcover
+# Description:   Convert png to jpg
+# Software/Tool: ImageMagick
+# ==============================================================================
+
+for FILE in $NAUTILUS_SCRIPT_SELECTED_URIS; do
+
+    FILENAME="$@"
+    BASENAME="${FILENAME%.*}"
+    EXT="${FILENAME##*.}"
+
+    echo "${FILENAME}"
+    echo "${BASENAME}"
+
+    case "${EXT}" in
+        png)
+            magick "${BASENAME}.png" "cover.jpg"
+        ;;
+        jpg|jpeg)
+            magick "${BASENAME}.jpg" -resize 1000x -quality 100 "cover.jpg"
+        ;;
+        webp)
+            magick "${BASENAME}.webp" "${BASENAME}.jpg"
+        ;;
+    esac
+done

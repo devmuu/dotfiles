@@ -1,0 +1,22 @@
+/* ubuntu Theme */
+
+@define-color background #300a24; /* background */
+@define-color foreground #eeeeec; /* foreground */
+@define-color current_line #3d1d34; /* current_line */
+@define-color comment #5A6A7F; /* comment */
+@define-color color0 #2e3436; /* black */
+@define-color color1 #cc0000; /* red */
+@define-color color2 #4e9a06; /* green */
+@define-color color3 #c4a000; /* yellow */
+@define-color color4 #3465a4; /* blue */
+@define-color color5 #75507b; /* magenta */
+@define-color color6 #06989a; /* cyan */
+@define-color color7 #d3d7cf; /* white */
+@define-color color8 #555753; /* black bright */
+@define-color color9 #ef2929; /* red bright */
+@define-color color10 #8ae234; /* green bright */
+@define-color color11 #fce94f; /* yellow bright */
+@define-color color12 #729fcf; /* blue bright */
+@define-color color13 #ad7fa8; /* magenta bright */
+@define-color color14 #34e2e2; /* cyan bright */
+@define-color color15 #eeeeec; /* white bright */

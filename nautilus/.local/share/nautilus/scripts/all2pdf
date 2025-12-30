@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# ==============================================================================
+# Program:       all2pdf
+# Description:   Merge all pdf selected documents
+# Software/Tool: ImageMagick
+# ==============================================================================
+
+magick -density 300x300 -quality 100 $NAUTILUS_SCRIPT_SELECTED_URIS out.pdf

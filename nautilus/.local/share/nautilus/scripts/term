@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# this method sanitize path
+WORK_DIR=$(echo "$NAUTILUS_SCRIPT_CURRENT_URI" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+
+echo "terminal open in ${WORK_DIR}"
+
+kitty -d "${WORK_DIR}"
+

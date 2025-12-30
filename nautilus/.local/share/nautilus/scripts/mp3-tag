@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+WORK_DIR=$(echo "$NAUTILUS_SCRIPT_CURRENT_URI" | sed -e 's/%/\\x/g' -e 's_^file://__' | xargs -0 printf "%b")
+
+cd ${WORK_DIR}
+"$HOME/.local/bin/settag.py"
+sleep 0.5
+"$HOME/.local/bin/settag.py" -r dash
