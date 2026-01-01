@@ -44,9 +44,8 @@ alias rsynk='rsync -azvh --inplace --no-whole-file --info=progress2'
 alias startproject='kitty --session ~/.config/kitty/sessions/project.conf'
 alias show-stats='stat -c "%a %A %U %G" $filename | lolcat'
 alias v='nvim'
-alias y='yazi'
-alias ym="yazi /run/media/${USER}"
-alias yp="yazi ${PROJECTS_DIR}"
+alias ym="y /run/media/${USER}"
+alias yp="y ${PROJECTS_DIR}"
 # alias vi='sudoedit'
 
 # git aliases

@@ -4,9 +4,6 @@
 # Software/Tool: zsh
 # ==============================================================================
 
-# Source local environments
-source ${HOME}/.userenv
-
 # Aliases
 source ${HOME}/.aliases
 
@@ -168,3 +165,11 @@ if [ -d ~/.gnupg ]; then
     gpg-connect-agent updatestartuptty /bye > /dev/null
 fi
 
+# use in yazi
+function y() {
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    command yazi "$@" --cwd-file="$tmp"
+    IFS= read -r -d '' cwd < "$tmp"
+    [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+    rm -f -- "$tmp"
+}
