@@ -8,7 +8,8 @@
     // include modules
     "modules-left": [
         "hyprland/workspaces",
-        "tray"
+        "tray",
+        "mpd"
     ],
 
     "modules-center": [
@@ -152,6 +153,38 @@
 
     "memory": {
         "format": "{}% "
+    },
+
+    "mpd": {
+        "on-click": "mpc prev",
+        "on-click-right": "mpc next",
+        "on-click-middle": "mpc toggle",
+        "on-scroll-up": "mpc volume +10",
+        "on-scroll-down": "mpc volume -10",
+        "smooth-scrolling-threshold": 2.0,
+        "format": "{stateIcon} {consumeIcon}{randomIcon}{repeatIcon}{singleIcon}{artist} - {album} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ",
+        "format-disconnected": "Disconnected ",
+        "format-stopped": "{consumeIcon}{randomIcon}{repeatIcon}{singleIcon}Stopped ",
+        "interval": 10,
+        "consume-icons": {
+            "on": " " // Icon shows only when "consume" is on
+        },
+        "random-icons": {
+            "off": "<span color=\"#f53c3c\"></span> ", // Icon grayed out when "random" is off
+            "on": " "
+        },
+        "repeat-icons": {
+            "on": " "
+        },
+        "single-icons": {
+            "on": "1 "
+        },
+        "state-icons": {
+            "paused": "",
+            "playing": ""
+        },
+        "tooltip-format": "MPD (connected)",
+        "tooltip-format-disconnected": "MPD (disconnected)"
     },
 
     "network": {
