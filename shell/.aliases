@@ -37,6 +37,7 @@ alias icat='kitten icat --stdin=no --use-window-size $COLUMNS,$LINES,800,800 --t
 alias luarun="lua -e 'package.cpath=\"./lib/?.so\"'"
 alias mailseed='pwgen -A -B -s -n -r b,c,d,f,g,h,j,k,l,m,n,p,q,r,s,t,v -N1 5'
 alias open='xdg-open'
+alias pacman-list='grep "\[ALPM\] installed" /var/log/pacman.log'
 alias pyclean="find . -regex '^.*\(__pycache__\|\.py[co]\)$' -delete"
 alias R='R --no-save'
 alias remove='shred -n3 --remove'
