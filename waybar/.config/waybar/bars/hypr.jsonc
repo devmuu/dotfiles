@@ -156,11 +156,13 @@
     },
 
     "mpd": {
-        "on-click": "mpc prev",
-        "on-click-right": "mpc next",
-        "on-click-middle": "mpc toggle",
-        "on-scroll-up": "mpc volume +10",
-        "on-scroll-down": "mpc volume -10",
+        "max-length": 80,
+        "title-len": 40,
+        "on-click": "rmpc prev",
+        "on-click-right": "rmpc next",
+        "on-click-middle": "rmpc togglepause",
+        "on-scroll-up": "rmpc volume +5",
+        "on-scroll-down": "rmpc volume -5",
         "smooth-scrolling-threshold": 2.0,
         "format": "{repeatIcon}{randomIcon}{consumeIcon}{singleIcon}{stateIcon} {artist} - {title} ({elapsedTime:%M:%S}/{totalTime:%M:%S}) ",
         "format-disconnected": "Disconnected ",
