@@ -17,7 +17,7 @@
     status_update_interval_ms: 1000,
     rewind_to_start_sec: None,
     keep_state_on_song_change: true,
-    center_current_song_on_change: false,
+    center_current_song_on_change: true,
     reflect_changes_to_playlist: false,
     select_current_song_on_change: true,
     ignore_leading_the: false,
@@ -41,8 +41,6 @@
             "1":       SwitchToTab("Queue"),
             "2":       SwitchToTab("Library"),
             "3":       SwitchToTab("Playlists"),
-            "4":       SwitchToTab("Find"),
-            "5":       SwitchToTab("Lyrics"),
             "q":       Quit,
             ">":       NextTrack,
             "p":       TogglePause,
@@ -150,14 +148,6 @@
         (
          name: "Playlists",
          pane: Pane(Playlists),
-        ),
-        (
-         name: "Find",
-         pane: Pane(Search),
-        ),
-        (
-         name: "Lyrics",
-         pane: Pane(Lyrics),
         ),
     ],
     cava: (

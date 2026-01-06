@@ -312,7 +312,7 @@ def main() -> None:
                             write_tag(pwd, idx, entry.name)
                         else:
                             # try find toml file in metadata directory based on musics, archived or limbo directories
-                            meta_folder = re.sub(f'{AUDIO_DIR}/(musics|archived|disposable)', f'{METADATA_DIR}', pwd)
+                            meta_folder = re.sub(f'{AUDIO_DIR}/music/(main|archived|disposable|review)', f'{METADATA_DIR}', pwd)
                             data_test = os.path.isfile(f'{meta_folder}/{f_data}')
 
                             # if file exists, write tags

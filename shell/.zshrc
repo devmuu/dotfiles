@@ -11,7 +11,7 @@ source ${HOME}/.aliases
 export BROWSER="brave-browser-stable"
 export EDITOR="nvim"
 # export LANG="en_US.UTF-8"
-export LUA_CPATH="${HOME}/.local/share/include/lua/lib/?.so"
+# export LUA_CPATH="${HOME}/.local/share/include/lua/lib/?.so"
 export MICRO_TRUECOLOR=1
 export PYTHONDONTWRITEBYTECODE=1
 export SUDO_EDITOR="nvim"

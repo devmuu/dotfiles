@@ -160,11 +160,11 @@ case "$1" in
             perform_backup "${MOUNT_POINT}" "${PREFIX}" "${LABEL}"
 
             # disconnect and power off device
-            if [[ ${LABEL} == "storage-01" ]]; then
-                lock_luks "${DEVICE}" "${LABEL}"
-            else
-                unmount_device "${DEVICE}"
-            fi
+            # if [[ ${LABEL} == "storage-01" ]]; then
+            #     lock_luks "${DEVICE}" "${LABEL}"
+            # else
+            #     unmount_device "${DEVICE}"
+            # fi
 
         else
             echo "No device."
