@@ -392,3 +392,8 @@ desc = "Convert image to cover default."
 on = [ "u", "r" ]
 run = "shell 'echo release:; read release_id; format_id=${release_id//[!0-9]/}; distrobox enter archlinux -- ~/.local/bin/discogs.py -r $format_id' --block"
 desc = "Get release content."
+
+[[mgr.prepend_keymap]]
+on = [ "u", "m" ]
+run = 'shell -- ~/.local/bin/yazi_open-metadata.sh "%d"'
+desc = "Open metadata file."
