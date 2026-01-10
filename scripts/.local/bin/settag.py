@@ -244,25 +244,6 @@ def rename_file(file_name, opt) -> None:
         print(f'[] {set_name} -> renamed')
 
 
-def rename_cover(data, filename) -> None:
-    """rename cover file"""
-    if os.path.isfile(filename):
-        COVER_DIR = f'{os.environ.get("HOME")}/Music/musics/.covers/albums'
-        toml_data = toml.load(data)
-        artist = toml_data['stats']['artist']
-        album = toml_data['stats']['album']
-        cover_path = ''
-        new_name = f'{artist}-{album}'
-        new_name = re.sub('\\.', '', new_name)
-        new_name = re.sub(';', '', new_name)
-        new_name = re.sub(' ', '-', new_name)
-        new_name = new_name.lower()
-        renamed = f'{COVER_DIR}/{new_name}.jpg'
-        os.rename(filename, renamed)
-    else:
-        print(f'no file named {filename}')
-
-
 # define f_data from given arg
 if args.f_data is not None:
     f_data = args.f_data
@@ -275,63 +256,59 @@ def main() -> None:
     """main"""
     pwd = os.getcwd()
 
-    # not interaction
-    if args.rename == 'cover':
-        rename_cover(f_data, 'front.jpg')
-    else:
-        # scan current directory
-        with os.scandir(pwd) as entries:
-            for entry in entries:
-                # get only current type files
-                if entry.name.endswith(f'.{file_format}'):
-                    # get number track
-                    # idx = entry.name.strip()[:2]
-                    try:
-                        re.findall(r'\b\d+\b', entry.name.strip())[0]
-                    except IndexError as err:
-                        idx = re.findall(r'\d+', entry.name.strip())[0]
+    # scan current directory
+    with os.scandir(pwd) as entries:
+        for entry in entries:
+            # get only current type files
+            if entry.name.endswith(f'.{file_format}'):
+                # get number track
+                # idx = entry.name.strip()[:2]
+                try:
+                    re.findall(r'\b\d+\b', entry.name.strip())[0]
+                except IndexError as err:
+                    idx = re.findall(r'\d+', entry.name.strip())[0]
+                else:
+                    idx = re.findall(r'\b\d+\b', entry.name.strip())[0]
+
+                # add 0 left in track number to normalize with toml file pattern
+                if len(idx) < 2:
+                    idx = idx.rjust(2,'0')
+
+                # verify given arg
+                if args.rename:
+                    # send file_name and rename arg
+                    # files are renamed like own metadata
+                    # run settag.py before to pass all data in toml file
+                    rename_file(entry.name, args.rename)
+                else:
+                    # send file_name and f_data to write_tag
+                    data_test = os.path.isfile(f'{pwd}/{f_data}')
+
+                    # try find toml file in current folder, otherwise in metadata dir
+                    if data_test:
+                        write_tag(pwd, idx, entry.name)
                     else:
-                        idx = re.findall(r'\b\d+\b', entry.name.strip())[0]
+                        # try find toml file in metadata directory based on musics, archived or limbo directories
+                        meta_folder = re.sub(f'{AUDIO_DIR}/music/(main|archived|disposable|review)', f'{METADATA_DIR}', pwd)
+                        data_test = os.path.isfile(f'{meta_folder}/{f_data}')
 
-                    # add 0 left in track number to normalize with toml file pattern
-                    if len(idx) < 2:
-                        idx = idx.rjust(2,'0')
-
-                    # verify given arg
-                    if args.rename:
-                        # send file_name and rename arg
-                        # files are renamed like own metadata
-                        # run settag.py before to pass all data in toml file
-                        rename_file(entry.name, args.rename)
-                    else:
-                        # send file_name and f_data to write_tag
-                        data_test = os.path.isfile(f'{pwd}/{f_data}')
-
-                        # try find toml file in current folder, otherwise in metadata dir
+                        # if file exists, write tags
                         if data_test:
-                            write_tag(pwd, idx, entry.name)
+                            write_tag(meta_folder, idx, entry.name)
                         else:
-                            # try find toml file in metadata directory based on musics, archived or limbo directories
-                            meta_folder = re.sub(f'{AUDIO_DIR}/music/(main|archived|disposable|review)', f'{METADATA_DIR}', pwd)
+                            # check last 2 folders in path for a pattern artist/album in Artists metadata
+                            p_album = os.path.basename(pwd)
+                            p_artist = os.path.basename(os.path.dirname(pwd))
+
+                            meta_folder = f'{METADATA_DIR}/Artists/{p_artist}/{p_album}'
                             data_test = os.path.isfile(f'{meta_folder}/{f_data}')
 
-                            # if file exists, write tags
+                            # if file exists, write tags, otherwise, break the loop
                             if data_test:
                                 write_tag(meta_folder, idx, entry.name)
                             else:
-                                # check last 2 folders in path for a pattern artist/album in Artists metadata
-                                p_album = os.path.basename(pwd)
-                                p_artist = os.path.basename(os.path.dirname(pwd))
-
-                                meta_folder = f'{METADATA_DIR}/Artists/{p_artist}/{p_album}'
-                                data_test = os.path.isfile(f'{meta_folder}/{f_data}')
-
-                                # if file exists, write tags, otherwise, break the loop
-                                if data_test:
-                                    write_tag(meta_folder, idx, entry.name)
-                                else:
-                                    print("No toml data file in metadata directory.")
-                                    break
+                                print("No toml data file in metadata directory.")
+                                break
 
 
 # run only in self, not in module
