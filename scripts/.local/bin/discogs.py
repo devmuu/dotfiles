@@ -81,17 +81,39 @@ if args.output_dir is not None:
     output_dir = args.output_dir
 
 
-def normalize_title(m_title):
-    """change some words to lower in title"""
-    m_title = m_title.title()
-    words = ["A", "O", "E", "Uma", "Da", "De",
-             "Do", "Das", "Dos", "Pra", "Para",
-             "And", "For", "The", "Of", "in"]
+def normalize_title(title: str) -> str:
+    lower_words = {
+        # portuguese
+        "a", "o", "as", "os", "um", "uma",
+        "de", "do", "da", "dos", "das",
+        "em", "por", "para", "pra",
+        "e", "ou", "mas",
 
-    for w in words:
-        aux = m_title.replace(f' {w} ', f' {w.lower()} ')
-        m_title = aux
-    return m_title
+        # english
+        "a", "an", "the",
+        "of", "to", "in", "on", "at", "by", "for",
+        "and", "or", "but", "nor"
+    }
+
+    words = re.split(r"(\s+)", title.strip())
+    result = []
+
+    for i, word in enumerate(words):
+        if word.isspace():
+            result.append(word)
+            continue
+
+        clean = re.sub(r"[^\w’']", "", word, flags=re.UNICODE)
+        lower = clean.lower()
+
+        if i == 0 or i == len(words) - 1:
+            result.append(word.capitalize())
+        elif lower in lower_words:
+            result.append(word.lower())
+        else:
+            result.append(word.capitalize())
+
+    return "".join(result)
 
 
 def move_files(album_path) -> None:
