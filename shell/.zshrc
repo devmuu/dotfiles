@@ -128,6 +128,7 @@ zle -N down-line-or-beginning-search
 
 bindkey "\e[1;3C" forward-word
 bindkey "\e[1;3D" backward-word
+bindkey "^[[3~" delete-char
 
 case "${DISTRO}" in
     fedora|arch)

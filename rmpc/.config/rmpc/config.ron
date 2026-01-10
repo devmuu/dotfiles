@@ -41,6 +41,7 @@
             "1":       SwitchToTab("Queue"),
             "2":       SwitchToTab("Library"),
             "3":       SwitchToTab("Playlists"),
+            "4":       SwitchToTab("Search"),
             "q":       Quit,
             ">":       NextTrack,
             "p":       TogglePause,
@@ -148,6 +149,10 @@
         (
          name: "Playlists",
          pane: Pane(Playlists),
+        ),
+        (
+         name: "Search",
+         pane: Pane(Search),
         ),
     ],
     cava: (

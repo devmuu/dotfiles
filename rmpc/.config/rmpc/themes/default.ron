@@ -217,12 +217,17 @@
     ),
     components: {
         "header": Split(direction: Horizontal, panes: [
-            (size: "15%", pane: Split(
+            (size: "18%", pane: Split(
                 direction: Vertical, panes: [
                     (
                         size: "100%",
                         pane: Pane(Property(
                             content: [
+                                (kind: Text(" 󰲹 "),style: (fg: "magenta", modifiers: "Bold")),
+                                (kind: Property(Status(QueueLength(thousands_separator: "."))), style: (fg: "magenta")),
+                                (kind: Text(" Songs ("),style: (fg: "magenta", modifiers: "Bold")),
+                                (kind: Property(Status(QueueTimeTotal(separator: ","))), style: (fg: "magenta")),
+                                (kind: Text(")"),style: (fg: "magenta", modifiers: "Bold")),
                                 (kind: Property(Widget(ScanStatus)), style: (fg: "green", modifiers: "Bold"))
                             ], align: Left))
                     ),
@@ -236,7 +241,7 @@
                     ),
                 ])
             ),
-            (size: "70%", pane: Split(direction: Vertical, panes:
+            (size: "64%", pane: Split(direction: Vertical, panes:
                 [
                     (size: "100%", pane: Pane(Property(
                         content: [
@@ -263,7 +268,7 @@
                     ),
                 ])
             ),
-            (size: "15%", pane: Split(direction: Vertical, panes:
+            (size: "18%", pane: Split(direction: Vertical, panes:
                 [
                     (size: "100%", pane: Split(direction: Horizontal, panes:
                         [
