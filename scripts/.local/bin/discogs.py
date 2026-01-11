@@ -3,176 +3,62 @@
 # ==============================================================================
 # Program:       discogs
 # Description:   Get music data from discogs api
-# Software/Tool: python/discogs_client/argparse
+# Software/Tool: python/discogs_client
 # ==============================================================================
 
-import os
 import re
-from typing import Tuple, List, Dict
-
+import os
 import argparse
 import requests
 import discogs_client
+from pathlib import Path
+from typing import List, Dict, Tuple, Union
+import logging
 
-# set global variables
-TOKEN = os.environ.get('DISCOGS_TOKEN')
-# base client
+# setup logging
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+
+# discogs client setup
+TOKEN = os.environ.get("DISCOGS_TOKEN")
 d = discogs_client.Client("ClientApplication/0.1")
-# authenticated client (need token)
 auth_search = discogs_client.Client("SearchApplication/0.1", user_token=TOKEN)
 
-parser = argparse.ArgumentParser(
-    description="Make files from jinja templates."
-)
+# CLI parser
+parser = argparse.ArgumentParser(description="Search data from Discogs API.")
 group = parser.add_mutually_exclusive_group(required=True)
-parser.add_argument(
-    '--cover',
-    action='store_true',
-    help='Get album cover'
-)
-group.add_argument(
-    "-r",
-    "--release",
-    type=str,
-    metavar="release",
-    dest="release_id",
-    help="Set release id",
-)
-group.add_argument(
-    "-s", "--search",
-    type=str,
-    metavar="search",
-    dest="search",
-    help="Search release"
-)
-parser.add_argument(
-    "-o",
-    "--output",
-    type=str,
-    default=os.getcwd(),
-    metavar="output",
-    dest="output_dir",
-    help="Set output directory",
-)
-parser.add_argument(
-    "-t",
-    "--type",
-    type=str,
-    default="",
-    metavar="type",
-    dest="f_type",
-    help="Set release type",
-)
-parser.add_argument(
-    "-url",
-    "--image-url",
-    type=str,
-    default=False,
-    metavar="image-url",
-    dest="image_url",
-    help="Show image url",
-)
-parser.add_argument(
-    "-single",
-    "--single-artist",
-    type=str,
-    default=False,
-    metavar="single-artist",
-    dest="single_artist",
-    help="Show only single artist",
-)
+parser.add_argument("--cover", action="store_true", help="Get album cover")
+group.add_argument("-r", "--release", type=str, help="Set release id")
+group.add_argument("-s", "--search", type=str, help="Search release")
+parser.add_argument("-o", "--output", type=str, default=os.getcwd(), help="Set output folder")
+parser.add_argument("-t", "--type", type=str, default="", help="Set release type")
 args = parser.parse_args()
 
-if args.output_dir is not None:
-    output_dir = args.output_dir
+# environment
+OUTPUT_DIR = Path(args.output)
+
+# ---------------------------
+# Helpers
+# ---------------------------
+
+# remove invalid chars in path
+def sanitize_path_name(name: str) -> str:
+    """remove invalid characters for folders/files"""
+    return re.sub(r'[\\/:"*?<>|]+', "", name)
 
 
-"""
-Begin Helpers
-"""
-
+# escape broken char in toml file
 def toml_escape(value: str) -> str:
     return value.replace('"', '\\"')
 
-# get set of track artist
-def track_artist_signature(track, release_artists):
-    if track.artists:
-        return frozenset(a.name for a in track.artists)
-    return frozenset(release_artists)
 
-
-def format_artist(signature: frozenset[str]) -> str:
-    return "; ".join(sorted(signature))
-
-
-def extract_release_metadata(release):
-    artists = [a.name for a in release.artists]
-
-    return {
-        "artist": "; ".join(artists),
-        "album": release.title,
-        "format": release.formats[0]["name"] if release.formats else "",
-        "discs": release.formats[0]["qty"] if release.formats else "",
-        "year": release.year or "",
-        "genre": release.genres[0] if release.genres else "",
-        "style": "; ".join(release.styles) if release.styles else "",
-    }
-
-
-def extract_tracks(release) -> Tuple[bool, List[Dict[str, str]]]:
-    release_artists = [a.name for a in release.artists]
-
-    signatures = [
-        track_artist_signature(track, release_artists)
-        for track in release.tracklist
-    ]
-
-    has_multiple_artists = len(set(signatures)) > 1
-
-    tracks = []
-    for idx, (track, sig) in enumerate(zip(release.tracklist, signatures), start=1):
-        tracks.append({
-            "number": idx,
-            "title": normalize_title(track.title),
-            "artist": format_artist(sig),
-        })
-
-    return has_multiple_artists, tracks
-
-
-def write_info_file(path, release_id, meta, tracks, has_multiple_track_artists):
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("[stats]\n")
-        f.write(f'gsid = "{release_id}"\n')
-        f.write('mbid = ""\n')
-
-        for key, value in meta.items():
-            f.write(f'{key} = "{value}"\n')
-
-        f.write('image = "cover.jpg"\n\n')
-
-        if has_multiple_track_artists:
-            print("[INFO] Release has multiple track artists")
-            for track in tracks:
-                f.write("[[tracks]]\n")
-                f.write(f'artist = "{track["artist"]}"\n')
-                f.write(f'title = "{track["title"]}"\n')
-                f.write(f'tracknumber = "{track["number"]:02}"\n\n')
-        else:
-            f.write("[tracks]\n")
-            for track in tracks:
-                f.write(
-                    f'track{track["number"]:02} = "{track["title"]}"\n'
-                )
-
+# list of items to set as lowercase
 def normalize_title(title: str) -> str:
     lower_words = {
         # portuguese
-        "a", "o", "as", "os", "um", "uma",
+        "o", "as", "os", "um", "uma",
         "de", "do", "da", "dos", "das",
         "em", "por", "para", "pra",
         "e", "ou", "mas",
-
         # english
         "a", "an", "the",
         "of", "to", "in", "on", "at", "by", "for",
@@ -200,103 +86,188 @@ def normalize_title(title: str) -> str:
     return "".join(result)
 
 
-def move_files(album_path) -> None:
-    """move files"""
-    if os.path.exists(album_path):
-        print(f"[WARN] Folder already exists → {album_path}")
-    else:
-        os.makedirs(album_path)
-        os.rename('info.toml', f'{album_path}/info.toml')
-        if args.cover:
-            os.rename('folder-tmp.jpg', f'{album_path}/cover.jpg')
+# get cover from requests
+def get_cover(front_url: str, output_path: Path) -> None:
+    """download cover image"""
+    headers = {"User-Agent": "Mozilla/5.0"}
+    response = requests.get(front_url, headers=headers)
+    cover_file = output_path / "folder-tmp.jpg"
 
-"""
-End Helpers
-"""
+    with open(cover_file, "wb") as f:
+        f.write(response.content)
 
 
-def get_cover(front_url) -> None:
-    """get cover file from url"""
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+# create and move files to album folder if it not exists
+def move_files(info_file: Path, cover_file: Path, album_path: Path):
+    """move info and cover files into album folder"""
+    if album_path.exists():
+        logging.warning(f"Folder already exists → {album_path}")
+        return
 
-    front_data = requests.get(front_url, headers=headers).content
-    cover_file = f"{output_dir}/folder-tmp.jpg"
-
-    with open(cover_file, "wb") as handler:
-        handler.write(front_data)
-
-    if args.image_url:
-        print(f"url_image: {cover_url}")
+    album_path.mkdir(parents=True, exist_ok=True)
+    info_file.rename(album_path / "info.toml")
+    if args.cover and cover_file.exists():
+        cover_file.rename(album_path / "cover.jpg")
 
 
-def get_tags(release_id):
+# ---------------------------
+# Processor Class
+# ---------------------------
+FEAT_RE = re.compile(r"\((feat\.|ft\.) ([^)]+)\)", re.I)
+
+class DiscogsReleaseProcessor:
+    def __init__(self, release, output_dir: Path):
+        self.release = release
+        self.output_dir = output_dir
+        self.release_artists = [artist.name for artist in release.artists]
+        self.metadata = self._extract_metadata()
+        self.multi_artist, self.tracks = self._extract_tracks()
+
+
+    def _track_artist_signature(self, track) -> frozenset:
+        artists = set(self.release_artists)
+        if track.artists:
+            artists = {a.name for a in track.artists}
+
+        extraartists = getattr(track, "extraartists", [])
+        artists |= {a.name for a in extraartists if "feat" in a.role.lower()}
+
+        # Detect feat in track title
+        feat_match = FEAT_RE.search(track.title)
+        if feat_match:
+            artists.add(feat_match.group(2))
+
+        return frozenset(artists)
+
+
+    def _format_artist(self, signature: frozenset) -> str:
+        return "; ".join(sorted(signature))
+
+
+    def _extract_metadata(self) -> dict:
+        return {
+            "artist": "; ".join(self.release_artists),
+            "album": self.release.title,
+            "format": self.release.formats[0]["name"] if self.release.formats else "",
+            "discs": self.release.formats[0]["qty"] if self.release.formats else "",
+            "year": self.release.year or "",
+            "genre": self.release.genres[0] if self.release.genres else "",
+            "style": "; ".join(self.release.styles) if self.release.styles else "",
+        }
+
+
+    def _extract_tracks(self) -> Tuple[bool, List[Dict[str, Union[int, str]]]]:
+        # detect multiple artist in tracks
+        signatures = [self._track_artist_signature(track) for track in self.release.tracklist]
+        has_multiple = len(set(signatures)) > 1
+
+        tracks = []
+        for idx, (track, sig) in enumerate(zip(self.release.tracklist, signatures), start=1):
+            tracks.append({
+                "number": idx,
+                "title": normalize_title(track.title),
+                "artist": self._format_artist(sig)
+            })
+
+        return has_multiple, tracks
+
+
+    def write_info_file(self):
+        info_file = self.output_dir / "info.toml"
+        logging.info(f"Creating info.toml for: {self.metadata['album']}")
+        logging.info(f"Artist: {self.metadata['artist']}")
+        logging.info(f"Album: {self.metadata['album']}")
+        logging.info(f"Year: {self.metadata['year']}")
+
+        with open(info_file, "w", encoding="utf-8") as f:
+            f.write("[stats]\n")
+            f.write(f'gsid = "{self.release.id}"\n')
+            f.write('mbid = ""\n')
+            for key, value in self.metadata.items():
+                f.write(f'{key} = "{value}"\n')
+            f.write('image = "cover.jpg"\n\n')
+
+            if self.multi_artist:
+                for track in self.tracks:
+                    f.write("[[tracks]]\n")
+                    f.write(f'title = "{toml_escape(track["title"])}"\n')
+                    f.write(f'artist = "{toml_escape(track["artist"])}"\n')
+                    f.write(f'tracknumber = "{track["number"]:02}"\n\n')
+            else:
+                f.write("[tracks]\n")
+                for track in self.tracks:
+                    f.write(f'track{track["number"]:02} = "{track["title"]}"\n')
+
+
+    def download_cover(self):
+        if not self.release.images:
+            logging.error(f"No cover for: {self.metadata['album']}")
+            return
+        logging.info(f"Downloading cover for: {self.metadata['album']}")
+        get_cover(self.release.images[0]["uri"], self.output_dir)
+
+
+    def move_files(self):
+        album_name = f"{self.metadata['year']} - {self.metadata['album']}"
+        album_name = sanitize_path_name(album_name)
+        album_path = self.output_dir / album_name
+        move_files(self.output_dir / "info.toml", self.output_dir / "folder-tmp.jpg", album_path)
+
+
+# ---------------------------
+# Functions to get releases
+# ---------------------------
+# get release from given id
+def get_tags(release_id: str):
     try:
         release = auth_search.release(release_id)
         _ = release.status
+        logging.info(f"Good release id → {release_id}")
     except discogs_client.exceptions.HTTPError:
-        print(f"[ERROR] Bad release id → {release_id}")
+        logging.error(f"Bad release id → {release_id}")
         return
 
-    print(f"[INFO] Good release id → {release_id}")
+    processor = DiscogsReleaseProcessor(release, OUTPUT_DIR)
 
-    meta = extract_release_metadata(release)
-    has_multiple_track_artists, tracks = extract_tracks(release)
+    if args.cover:
+        processor.download_cover()
+        return
 
-    print(f"[METADATA] artist: {meta['artist']}")
-    print(f"[METADATA] release: {meta['album']}")
-    print(f"[METADATA] year: {meta['year']}")
-
-    write_info_file(
-        f"{output_dir}/info.toml",
-        release_id,
-        meta,
-        tracks,
-        has_multiple_track_artists
-    )
-
-    if args.cover and release.images:
-        print(f"[COVER] Getting cover → {meta['album']}")
-        get_cover(release.images[0]["uri"])
-
-    move_files(f"{meta['year']} - {meta['album']}")
+    processor.write_info_file()
+    processor.move_files()
 
 
-def search_id(search_item) -> None:
-    """get release id from search"""
+# search release from text
+def search_id(search_item: str):
     try:
         auth_search.search(search_item)
     except discogs_client.exceptions.HTTPError:
-        print(f"[ERROR] Bad release search")
+        logging.error("Bad release search")
+        return
     except Exception as err:
-        print(f"[Error] {err}")
+        logging.error(err)
+        return
+
+    result = auth_search.search(search_item, type="release", format=args.type)
+    if result.count:
+        release = result[0]
+        logging.info(f"Match: {release.title}")
+        get_tags(release.id)
     else:
-        print(f"[SEARCH] Item response")
-        result = auth_search.search(search_item, type="release", format=args.f_type)
-        if result.count:
-            release = result[0]
-            print(f"[INFO] Match: {release.title}")
-            release_id = release.id
-            get_tags(release_id)
-        else:
-            print(f"[INFO] No results for {search_item}")
+        logging.info(f"No results for {search_item}")
 
 
-def main() -> None:
-    """main"""
-    # check if release id
-    if args.release_id:
-        release_id = args.release_id
-        get_tags(release_id)
-
-    # if search arg is passed proceed to get release id
+# ---------------------------
+# Main
+# ---------------------------
+def main():
+    if args.release:
+        get_tags(args.release)
     if args.search:
-        search_item = args.search
-        search_id(search_item)
-
-    print("[DONE]")
+        search_id(args.search)
+    logging.info("DONE")
 
 
-# run only in self, not in module
 if __name__ == "__main__":
     main()
 
