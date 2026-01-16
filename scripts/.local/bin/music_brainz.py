@@ -133,7 +133,7 @@ def get_release(release_id) -> None:
                 f.write('\n')
 
             print(f'data saved in {data_file}')
-            get_image(release_id)
+            # get_image(release_id)
     else:
         print('No release id')
 

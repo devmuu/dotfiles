@@ -376,6 +376,11 @@ keymap = [
 [[mgr.prepend_keymap]]
 on = [ "u", "s" ]
 run = "shell 'distrobox enter archlinux -- ~/.local/bin/fix-mp3-length.sh .' --block"
+desc = "Fix mp3 length."
+
+[[mgr.prepend_keymap]]
+on = [ "u", "t" ]
+run = "shell 'distrobox enter archlinux -- ~/.local/bin/settag.py %d --apply-and-rename -r dash' --block"
 desc = "Set music tags."
 
 [[mgr.prepend_keymap]]

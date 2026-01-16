@@ -83,10 +83,10 @@
     "battery": {
         "format": "{capacity}% {icon}",
         "format-alt": "{time} {icon}",
-        "format-charging": "{capacity}% ",
+        "format-charging": "{capacity}% 🪫",
         "format-critical": "{capacity}% 🪫",
         "format-full": "🔋",
-        "format-icons": ["", "", "", "", ""],
+        "format-icons": [" ", " ", " ", " ", " "],
         "format-plugged": "🔌",
         "interval": 1,
         "states": {
@@ -186,7 +186,7 @@
 
     "network": {
         "format-alt": "{ifname}: {ipaddr}/{cidr}",
-        "format-disconnected": "Disconnected ⚠️",
+        "format-disconnected": "⚠️",
         "format-ethernet": "{ipaddr}/{cidr} 󰈀 ",
         "format-linked": "{ifname} (No IP) 󰌹 ",
         "format-wifi": "{signalStrength}% 🛜",
