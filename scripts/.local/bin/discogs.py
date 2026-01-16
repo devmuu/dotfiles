@@ -46,6 +46,55 @@ OUTPUT_DIR = Path(args.output)
 
 FEAT_RE = re.compile(r"\((?:feat\.|ft\.|featuring) ([^)]+)\)", re.I)
 
+def write_toml_value(value):
+    if value is None:
+        return '""'
+
+    if isinstance(value, bool):
+        return "true" if value else "false"
+
+    if isinstance(value, (int, float)):
+        return str(value)
+
+    if isinstance(value, str):
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        return "[" + ", ".join(write_toml_value(v) for v in value) + "]"
+
+    raise TypeError(f"Unsupported TOML type: {type(value)}")
+
+
+def write_toml_dict(f, data, prefix=None):
+    for key, value in data.items():
+
+        # ignore empty lists
+        if isinstance(value, list) and not value:
+            continue
+
+        # [[block]]
+        if isinstance(value, list) and value and isinstance(value[0], dict):
+            for item in value:
+                block_name = f"{prefix}.{key}" if prefix else key
+                f.write(f"[[{block_name}]]\n")
+                write_toml_dict(f, item, block_name)
+                f.write("\n")
+
+        # [block]
+        elif isinstance(value, dict):
+            block_name = f"{prefix}.{key}" if prefix else key
+            f.write(f"[{block_name}]\n")
+            write_toml_dict(f, value, block_name)
+            f.write("\n")
+
+        # key = value
+        else:
+            f.write(f"{key} = {write_toml_value(value)}\n")
+
+
 # remove invalid chars in path
 def sanitize_path_name(name: str) -> str:
     """remove invalid characters for folders/files"""
@@ -323,21 +372,21 @@ class DiscogsReleaseProcessor:
                 release_date = '-'.join(parts)   # YYYY-MM-DD
 
         return {
-            "release_date": toml_string(release_date) or "",
-            "musicbrainz_artistid": toml_string(mb_artistid) or "",
-            "musicbrainz_albumid": toml_string(release_id) or "",
-            "musicbrainz_releasegroupid": toml_string(mb_releasegroupid) or ""
+            "release_date": release_date or "",
+            "musicbrainz_artistid": mb_artistid or "",
+            "musicbrainz_albumid": release_id or "",
+            "musicbrainz_releasegroupid": mb_releasegroupid or ""
         }
 
 
     def _extract_metadata(self) -> dict:
         return {
-            "album_title": toml_string(normalize_title(self.release.title)) or toml_string(normalize_title(self.release.master.title)),
+            "album_title": normalize_title(self.release.title) or normalize_title(self.release.master.title),
             "release_year": safe_get(self.release, ['year'], safe_get(self.release.master, ['year'], 1900)),
             "total_discs": int(safe_get(self.release, ['formats', 0, 'qty'], 1)),
-            "album_artist": toml_string(normalize_title(self.album_artist)),
-            "media_format": toml_string(safe_get(self.release, ['formats', 0, 'name'], 'Digital Media')),
-            "region": toml_string(safe_get(self.release, ['country'], 'Unknown')),
+            "album_artist": normalize_title(self.album_artist),
+            "media_format": safe_get(self.release, ['formats', 0, 'name'], 'Digital Media'),
+            "region": safe_get(self.release, ['country'], 'Unknown'),
             "descriptions": safe_get(self.release, ['formats', 0, 'descriptions'], []),
             "genres": self.release.genres if self.release.genres else [],
             "styles": self.release.styles if self.release.styles else [],
@@ -379,77 +428,76 @@ class DiscogsReleaseProcessor:
 
     def write_info_file(self):
         info_file = self.output_dir / "info_.toml"
-        logging.info(f"Creating info.toml for: {self.metadata['album_title']}")
-        logging.info(f"Artist: {self.metadata['album_artist']}")
-        logging.info(f"Album: {self.metadata['album_title']}")
-        logging.info(f"Year: {self.metadata['release_year']}")
+
+        toml_data = {
+            "schema": "music.library.release",
+            "schema_version": 1,
+
+            "sources": {
+                "discogs": True,
+                "musicbrainz": True,
+            },
+
+            "info": {
+                "region": self.metadata["region"],
+                "styles": self.metadata["styles"],
+                "release_notes": self.metadata["descriptions"],
+            },
+
+            "assets": {
+                "cover_art": "album_cover",
+            },
+
+            "release": {
+                "title": self.metadata["album_title"],
+                "artist": self.metadata["album_artist"],
+                "release_type": self._get_release_group(),
+                "release_year": self.metadata["release_year"],
+                "release_date": self.metadata["release_date"],
+                "publishers": self.metadata["publishers"],
+                "genres": self.metadata["genres"],
+            },
+
+            "disc": [{
+                "index": self.metadata["total_discs"],
+                "media_format": self.metadata["media_format"],
+            }],
+
+            "tracks": [
+                {
+                    "position": t["position"],
+                    "title": t["title"],
+                    "artists": {
+                        "primary": t["artists"]["primary"],
+                        "featured": t["artists"]["featured"],
+                    }
+                }
+                for t in self.tracks
+            ],
+
+            "ids": {
+                "musicbrainz": {
+                    "artistid": self.metadata["musicbrainz_artistid"],
+                    "albumid": self.metadata["musicbrainz_albumid"],
+                    "releasegroupid": self.metadata["musicbrainz_releasegroupid"],
+                },
+                "discogs": {
+                    "artistid": [a.id for a in self.release.artists],
+                    "releaseid": self.release.id,
+                    "masterid": safe_get(self.release.master, ["id"], self.release.id),
+                },
+            },
+
+            "control": {
+                "locker": False,
+                "write_tags": True,
+                "write_cover": True,
+                "write_mode": "overwrite",
+            },
+        }
 
         with open(info_file, "w", encoding="utf-8") as f:
-            f.write('schema = "music.library.release"\n')
-            f.write('schema_version = 1\n')
-            f.write('\n')
-
-            f.write("[sources]\n")
-            f.write('discogs = true\n')
-            f.write('musicbrainz = true\n')
-            f.write('\n')
-
-            f.write("[info]\n")
-            f.write(f'region = {self.metadata["region"]}\n')
-            f.write(f'styles = {self.metadata["styles"]}\n')
-            f.write(f'release_notes = {self.metadata["descriptions"]}\n')
-            f.write('\n')
-
-            f.write("[assets]\n")
-            f.write('cover_art = "album_cover"\n')
-            f.write('\n')
-
-            f.write("[release]\n")
-            f.write(f'title = {self.metadata["album_title"]}\n')
-            f.write(f'artist = {self.metadata["album_artist"]}\n')
-            f.write(f'release_type = "{self._get_release_group()}"\n')
-            f.write(f'release_year = {self.metadata["release_year"]}\n')
-            f.write(f'release_date = {self.metadata["release_date"]}\n')
-            f.write(f'publishers = {self.metadata["publishers"]}\n')
-            f.write(f'genres = {self.metadata["genres"]}\n')
-            f.write('\n')
-
-            f.write("[[disc]]\n")
-            f.write(f'index = {self.metadata["total_discs"]}\n')
-            f.write(f'media_format = {self.metadata["media_format"]}\n')
-            f.write('\n')
-
-            for track in self.tracks:
-                f.write("[[tracks]]\n")
-                f.write(f'position = {track["position"]}\n')
-                f.write(f'title = "{toml_escape(track["title"])}"\n')
-                f.write('\n')
-                f.write("[tracks.artists]\n")
-
-                f.write(f'primary = {toml_list(track["artists"]["primary"])}\n')
-                if len(track["artists"]["featured"]) > 0:
-                    f.write(f'featured = {toml_list(track["artists"]["featured"])}\n')
-
-                f.write('\n')
-
-            f.write("[ids.musicbrainz]\n")
-            f.write(f'artistid = {self.metadata["musicbrainz_artistid"]}\n')
-            f.write(f'albumid = {self.metadata["musicbrainz_albumid"]}\n')
-            f.write(f'releasegroupid = {self.metadata["musicbrainz_releasegroupid"]}\n')
-            f.write('\n')
-
-            f.write("[ids.discogs]\n")
-            f.write(f'artistid = {[artist.id for artist in self.release.artists]}\n')
-            f.write(f'releaseid = {self.release.id}\n')
-            f.write(f'masterid = { safe_get(self.release.master, ["id"], self.release.id) }\n')
-            f.write('\n')
-
-            f.write("[control]\n")
-            f.write(f'locker = false\n')
-            f.write(f'write_tags = true\n')
-            f.write(f'write_cover = true\n')
-            f.write(f'write_mode = "overwrite"\n')
-            f.write('\n')
+            write_toml_dict(f, toml_data)
 
 
     def download_cover(self):
