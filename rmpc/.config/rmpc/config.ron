@@ -25,7 +25,7 @@
     directories_sort: SortFormat(group_by_type: true, reverse: false),
     album_art: (
         method: Auto,
-        max_size_px: (width: 280, height: 280),
+        max_size_px: (width: 600, height: 600),
         disabled_protocols: ["http://", "https://"],
         vertical_align: Top,
         horizontal_align: Center,
@@ -118,6 +118,11 @@
             (value: "title",       label: "Title"),
             (value: "filename",    label: "Filename"),
             (value: "genre",       label: "Genre"),
+            (value: "mood",        label: "Mood"),
+            (value: "grouping",    label: "Release Type"),
+
+            // musicbrainz tags
+            (value: "musicbrainz_albumid",       label: "MusicBrainz Album ID"),
         ],
     ),
     artists: (
@@ -134,8 +139,8 @@
                  (size: "55%", pane: Split(
                      direction: Horizontal,
                      panes: [
-                         (size: "85%", pane: Pane(Queue)),
-                         (size: "15%", pane: Pane(AlbumArt)),
+                         (size: "75%", pane: Pane(Queue)),
+                         (size: "25%", pane: Pane(AlbumArt)),
                      ],
                  )),
                  (size: "45%", pane: Pane(Cava), borders: "TOP"),
