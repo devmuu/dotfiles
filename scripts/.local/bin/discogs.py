@@ -126,25 +126,25 @@ def normalize_discogs_tracklist(tracks: List[Track]) -> List[Dict]:
 
 
 def get_track_artists(track, release_artists) -> dict:
-    # --- Inicialização ---
+    # init
     primary = set()
     featured = set()
 
-    # Adiciona artistas principais do release
+    # add main release artists
     for a in release_artists:
         if a and a.lower() != "various":
             primary.add(normalize_title(a))
     if "Various Artists" in release_artists:
         primary.add("Various Artists")
 
-    # --- Artistas principais da faixa ---
+    # lead artists from tracks
     for a in getattr(track, "artists", []) or []:
         if getattr(a, "name", None):
             name = normalize_title(a.name)
             if name.lower() != "various":
                 primary.add(name)
 
-    # --- Extra artists (discogs track.data) ---
+    # extra artists (discogs track.data)
     for a in track.data.get("extraartists", []):
         name = a.get("name")
         role = a.get("role", "").lower()
@@ -152,20 +152,20 @@ def get_track_artists(track, release_artists) -> dict:
             continue
         name = normalize_title(name)
 
-        # Apenas feat entra no featured
+        # keys to allow use as featured
         if any(k in role for k in ("feat", "ft", "featuring")):
             featured.add(name)
 
-    # --- Detectar feat no título ---
+    # detect features in track title
     title = getattr(track, "title", "")
     for match in FEAT_RE.finditer(title):
         names = [normalize_title(n.strip()) for n in match.group(1).split(",")]
         featured.update(filter(None, names))
 
-    # --- Remover duplicatas: featured não pode estar em primary ---
+    # remove duplicates
     featured -= primary
 
-    # --- Ordena para consistência ---
+    # order both lists
     return {
         "primary": sorted(primary),
         "featured": sorted(featured)
