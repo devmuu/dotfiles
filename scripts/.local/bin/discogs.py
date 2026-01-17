@@ -10,7 +10,7 @@ import re
 import os
 import argparse
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import discogs_client
 from discogs_client.models import Track
 import json
@@ -39,61 +39,15 @@ args = parser.parse_args()
 
 # environment
 OUTPUT_DIR = Path(args.output)
+HOME_DIR = Path(os.environ.get('HOME'))
+DISCOGS_CACHE_DIR = HOME_DIR / '.cache' / 'discogs'
+DISCOGS_CACHE_DIR.mkdir(exist_ok=True)
 
 # ---------------------------
 # Helpers
 # ---------------------------
 
 FEAT_RE = re.compile(r"\((?:feat\.|ft\.|featuring) ([^)]+)\)", re.I)
-
-def write_toml_value(value):
-    if value is None:
-        return '""'
-
-    if isinstance(value, bool):
-        return "true" if value else "false"
-
-    if isinstance(value, (int, float)):
-        return str(value)
-
-    if isinstance(value, str):
-        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-        return f'"{escaped}"'
-
-    if isinstance(value, list):
-        if not value:
-            return "[]"
-        return "[" + ", ".join(write_toml_value(v) for v in value) + "]"
-
-    raise TypeError(f"Unsupported TOML type: {type(value)}")
-
-
-def write_toml_dict(f, data, prefix=None):
-    for key, value in data.items():
-
-        # ignore empty lists
-        if isinstance(value, list) and not value:
-            continue
-
-        # [[block]]
-        if isinstance(value, list) and value and isinstance(value[0], dict):
-            for item in value:
-                block_name = f"{prefix}.{key}" if prefix else key
-                f.write(f"[[{block_name}]]\n")
-                write_toml_dict(f, item, block_name)
-                f.write("\n")
-
-        # [block]
-        elif isinstance(value, dict):
-            block_name = f"{prefix}.{key}" if prefix else key
-            f.write(f"[{block_name}]\n")
-            write_toml_dict(f, value, block_name)
-            f.write("\n")
-
-        # key = value
-        else:
-            f.write(f"{key} = {write_toml_value(value)}\n")
-
 
 # remove invalid chars in path
 def sanitize_path_name(name: str) -> str:
@@ -151,6 +105,25 @@ def normalize_title(title: str) -> str:
 
     return "".join(result)
 
+
+def cache_get(key: str, max_age_days: int = 7):
+    """Retorna dados do cache se ainda válidos"""
+    cache_file = DISCOGS_CACHE_DIR / f"{key}.json"
+    if cache_file.exists():
+        mtime = datetime.fromtimestamp(cache_file.stat().st_mtime)
+        if datetime.now() - mtime < timedelta(days=max_age_days):
+            with open(cache_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+    return None
+
+
+def cache_set(key: str, data):
+    """Salva dados no cache"""
+    cache_file = DISCOGS_CACHE_DIR / f"{key}.json"
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def normalize_discogs_tracklist(tracks: List[Track]) -> List[Dict]:
     normalized = []
     counter = 1
@@ -184,7 +157,7 @@ def get_track_artists(track, release_artists) -> dict:
         if a and a.lower() != "various":
             primary.add(normalize_title(a))
     if "Various Artists" in release_artists:
-        primary.add("Various Artists")
+        primary.remove("Various Artists")
 
     # lead artists from tracks
     for a in getattr(track, "artists", []) or []:
@@ -263,6 +236,59 @@ def move_files(info_file: Path, cover_file: Path, album_path: Path):
     if args.cover and cover_file.exists():
         cover_file.rename(album_path / "cover.jpg")
 
+class TomlWriter:
+    def __init__(self, file):
+        self.f = file
+        self.started = False
+
+    # -----------------------
+    # Helpers internos
+    # -----------------------
+    def _newline(self):
+        if self.started:
+            self.f.write("\n")
+        self.started = True
+
+    def _format_value(self, value):
+        """Formata string, boolean, int, float ou lista para TOML"""
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        elif isinstance(value, (int, float)):
+            return str(value)
+        elif isinstance(value, list):
+            return "[" + ", ".join([self._format_value(v) for v in value]) + "]"
+        elif value is None:
+            return '""'
+        else:
+            # escape quotes
+            return f'"{str(value).replace("\"", "\\\"")}"'
+
+    def _write_kv(self, key, value):
+        self.f.write(f"{key} = {self._format_value(value)}\n")
+
+    # -----------------------
+    # API pública
+    # -----------------------
+    def write_block(self, name: str, values: dict):
+        """Escreve [block]"""
+        self._newline()
+        self.f.write(f"[{name}]\n")
+        for k, v in values.items():
+            self._write_kv(k, v)
+
+    def write_array_block(self, name: str, values: dict):
+        """Escreve [[block]]"""
+        self._newline()
+        self.f.write(f"[[{name}]]\n")
+        for k, v in values.items():
+            self._write_kv(k, v)
+
+    def write_subblock(self, parent: str, name: str, values: dict):
+        """Escreve [parent.child] sempre com linha vazia antes"""
+        self._newline()
+        self.f.write(f"[{parent}.{name}]\n")
+        for k, v in values.items():
+            self._write_kv(k, v)
 
 # ---------------------------
 # Processor Class
@@ -271,16 +297,23 @@ class DiscogsReleaseProcessor:
     def __init__(self, release, output_dir: Path):
         self.release = release
         self.output_dir = output_dir
-        self.original_artists_list = [ artist.name for artist in release.artists ]
-        self.original_artists = ', '.join(self.original_artists_list)
+        self.cache_key = f"discogs_{self.release.id}"
 
-        print(f'[DISCOGS] Original Artist: {self.original_artists}')
+        cached = cache_get(self.cache_key)
+        if cached:
+            self.metadata = cached["metadata"]
+            self.tracks = cached["tracks"]
+            self.multi_artist = cached["multi_artist"]
+            print(f"[DISCOGS] Loaded cached release → {self.release.title}")
+            return
 
+        # original release artist in discogs
         self.release_artists = [
             artist.name if artist.name != "Various" else "Various Artists"
             for artist in release.artists
         ]
 
+        # album artist
         if len(self.release_artists) > 1 or "Various Artists" in self.release_artists:
             self.album_artist = "Various Artists"
         else:
@@ -288,7 +321,14 @@ class DiscogsReleaseProcessor:
 
         self.metadata = self._extract_metadata()
         self.multi_artist, self.tracks = self._extract_tracks()
-        self.metadata.update(self._extract_musicbrainz())  # add MB info
+        self.metadata.update(self._extract_musicbrainz())
+
+        cache_set(self.cache_key, {
+            "metadata": self.metadata,
+            "tracks": self.tracks,
+            "multi_artist": self.multi_artist
+        })
+        print(f"[DISCOGS] Cached release → {self.release.title}")
 
 
     def _get_release_group(self) -> str:
@@ -312,12 +352,23 @@ class DiscogsReleaseProcessor:
         if not hasattr(self, "release_artists") or not hasattr(self, "release"):
             return {}
 
+        # to use in musicbrainz search
+        self.original_artists_list = [ artist.name for artist in self.release.artists ]
+        self.original_artists = ', '.join(self.original_artists_list)
         mb_artist = self.original_artists if self.original_artists else ""
         mb_release = self.release.title if hasattr(self.release, "title") else ""
 
         if not mb_artist or not mb_release:
             return {}
 
+        # ---------- Cache ----------
+        cache_key = f"mb_{mb_artist}_{mb_release}".replace(" ", "_")
+        cached = cache_get(cache_key)
+        if cached:
+            return cached
+        # ---------------------------
+
+        # Consulta MusicBrainz
         try:
             search_info = musicbrainzngs.search_releases(
                 artist=mb_artist,
@@ -334,7 +385,6 @@ class DiscogsReleaseProcessor:
 
         release_data = search_info['release-list'][0]
         release_id = release_data.get('id')
-
         if not release_id:
             return {}
 
@@ -371,12 +421,18 @@ class DiscogsReleaseProcessor:
             elif len(parts) == 3:
                 release_date = '-'.join(parts)   # YYYY-MM-DD
 
-        return {
+        result = {
             "release_date": release_date or "",
             "musicbrainz_artistid": mb_artistid or "",
             "musicbrainz_albumid": release_id or "",
             "musicbrainz_releasegroupid": mb_releasegroupid or ""
         }
+
+        # ---------- Salva no cache ----------
+        cache_set(cache_key, result)
+        # -----------------------------------
+
+        return result
 
 
     def _extract_metadata(self) -> dict:
@@ -405,7 +461,7 @@ class DiscogsReleaseProcessor:
             position = t["position"]
             title = t["title"]
 
-            # Detect artists for this track
+            # Detect artists for this track (this is as similar result like release.tracklist)
             track_obj = next((tr for tr in self.release.tracklist if (tr.title.strip() == title or tr.position == position)), None)
 
             if track_obj:
@@ -421,7 +477,7 @@ class DiscogsReleaseProcessor:
             })
 
         # Detecta se existe múltiplos artistas
-        has_multiple = len(track_artists) > 1
+        has_multiple = len(track_artists["primary"]) > 1
 
         return has_multiple, tracks
 
@@ -429,75 +485,74 @@ class DiscogsReleaseProcessor:
     def write_info_file(self):
         info_file = self.output_dir / "info_.toml"
 
-        toml_data = {
-            "schema": "music.library.release",
-            "schema_version": 1,
+        with open(info_file, "w", encoding="utf-8") as f:
+            f.write('schema = "music.library.release"\n')
+            f.write("schema_version = 1\n")
+            f.write("\n")
 
-            "sources": {
+            writer = TomlWriter(f)
+
+            writer.write_block("sources", {
                 "discogs": True,
                 "musicbrainz": True,
-            },
+            })
 
-            "info": {
-                "region": self.metadata["region"],
-                "styles": self.metadata["styles"],
-                "release_notes": self.metadata["descriptions"],
-            },
-
-            "assets": {
-                "cover_art": "album_cover",
-            },
-
-            "release": {
+            writer.write_block("release", {
                 "title": self.metadata["album_title"],
                 "artist": self.metadata["album_artist"],
                 "release_type": self._get_release_group(),
                 "release_year": self.metadata["release_year"],
                 "release_date": self.metadata["release_date"],
-                "publishers": self.metadata["publishers"],
+                "publishers": list(dict.fromkeys(self.metadata["publishers"])),
                 "genres": self.metadata["genres"],
-            },
+            })
 
-            "disc": [{
+            writer.write_block("release.extra", {
+                "region": self.metadata["region"],
+                "descriptions": self.metadata["descriptions"],
+                "styles": self.metadata["styles"],
+            })
+
+            writer.write_array_block("discs", {
                 "index": self.metadata["total_discs"],
                 "media_format": self.metadata["media_format"],
-            }],
+            })
 
-            "tracks": [
-                {
-                    "position": t["position"],
-                    "title": t["title"],
-                    "artists": {
-                        "primary": t["artists"]["primary"],
-                        "featured": t["artists"]["featured"],
-                    }
+            for track in self.tracks:
+                writer.write_array_block("tracks", {
+                    "position": track["position"],
+                    "title": track["title"],
+                })
+
+                artists_block = {
+                    "primary": track["artists"]["primary"]
                 }
-                for t in self.tracks
-            ],
 
-            "ids": {
-                "musicbrainz": {
-                    "artistid": self.metadata["musicbrainz_artistid"],
-                    "albumid": self.metadata["musicbrainz_albumid"],
-                    "releasegroupid": self.metadata["musicbrainz_releasegroupid"],
-                },
-                "discogs": {
-                    "artistid": [a.id for a in self.release.artists],
-                    "releaseid": self.release.id,
-                    "masterid": safe_get(self.release.master, ["id"], self.release.id),
-                },
-            },
+                if track["artists"]["featured"]:
+                    artists_block["featured"] = track["artists"]["featured"]
 
-            "control": {
+                writer.write_subblock("tracks", "artists", artists_block)
+
+            writer.write_block("ids.musicbrainz", {
+                "artist": self.metadata["musicbrainz_artistid"],
+                "release": self.metadata["musicbrainz_albumid"],
+                "master": self.metadata["musicbrainz_releasegroupid"],
+            })
+
+            writer.write_block("ids.discogs", {
+                "artist": [a.id for a in self.release.artists],
+                "release": self.release.id,
+                "master": safe_get(self.release.master, ["id"], self.release.id),
+            })
+
+            writer.write_block("control", {
                 "locker": False,
                 "write_tags": True,
                 "write_cover": True,
                 "write_mode": "overwrite",
-            },
-        }
+            })
 
-        with open(info_file, "w", encoding="utf-8") as f:
-            write_toml_dict(f, toml_data)
+            f.write("\n")
 
 
     def download_cover(self):
