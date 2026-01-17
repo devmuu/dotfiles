@@ -455,33 +455,65 @@ class DiscogsReleaseProcessor:
 
 
     def _extract_tracks(self) -> Tuple[bool, List[Dict[str, Union[int, str]]]]:
-        default_tracklist = self.release.tracklist or self.release.master.tracklist
+        """
+        Extrai as faixas do release, normalizando títulos, posições e artistas.
+
+        Retorna:
+            has_multiple (bool): True se alguma faixa tiver múltiplos artistas primários
+            tracks (List[Dict]): Lista de faixas com posição canônica, posição editorial, título e artistas
+        """
+        # normaliza a tracklist (ignora separadores e faixas vazias)
+        default_tracklist = self.release.tracklist or getattr(self.release, 'master', {}).tracklist
         normalized_tracks = normalize_discogs_tracklist(default_tracklist)
 
         tracks = []
         has_multiple = False
 
+        # ponteiro para tracklist original
+        tracklist_idx = 0
+
         for t in normalized_tracks:
-            position = t["position"]
-            title = t["title"]
+            track_obj = None
 
-            # Detect artists for this track (this is as similar result like release.tracklist)
-            track_obj = next((tr for tr in self.release.tracklist if (tr.title.strip() == title or tr.position == position)), None)
+            # avança na tracklist original até achar a próxima faixa válida
+            while tracklist_idx < len(self.release.tracklist):
+                candidate = self.release.tracklist[tracklist_idx]
+                tracklist_idx += 1
 
-            if track_obj:
-                track_artists = get_track_artists(track_obj, self.release_artists)
-            else:
-                track_artists = {"primary": self.release_artists, "featured": []}
+                title_candidate = candidate.title.strip() if candidate.title else ""
+                position_candidate = candidate.position.strip() if candidate.position else ""
 
-            # track_artists = list(sig)
+                if title_candidate not in ("", "-") or position_candidate != "":
+                    track_obj = candidate
+                    break
+
+            # fallback: se não encontrou objeto original (não deveria ocorrer)
+            if track_obj is None:
+                track_obj = Track(self.release)  # cria dummy
+                track_obj.title = t["title"]
+                track_obj.position = t["position"]
+                track_obj.artists = []
+
+            # extrai artistas
+            track_artists = get_track_artists(track_obj, self.release_artists)
+
+            # atualiza flag de múltiplos artistas
+            if len(track_artists["primary"]) > 1:
+                has_multiple = True
+
+            # adiciona faixa à lista final
             tracks.append({
                 "position": t["track"],
-                "title": normalize_title(title),
+                "original_position": t["position"],
+                "title": normalize_title(t["title"]),
                 "artists": track_artists
             })
 
-        # Detecta se existe múltiplos artistas
-        has_multiple = len(track_artists["primary"]) > 1
+        # valida integridade (opcional, mas recomendado)
+        expected_positions = list(range(1, len(tracks) + 1))
+        actual_positions = [tr["position"] for tr in tracks]
+        if actual_positions != expected_positions:
+            logging.warning(f"Track positions mismatch: {actual_positions} (expected {expected_positions})")
 
         return has_multiple, tracks
 
@@ -512,14 +544,16 @@ class DiscogsReleaseProcessor:
                 "styles": self.metadata["styles"],
             })
 
-            writer.write_array_block("discs", {
-                "index": self.metadata["total_discs"],
-                "media_format": self.metadata["media_format"],
-            })
+            for d in range(1, self.metadata["total_discs"] + 1):
+                writer.write_array_block("discs", {
+                    "index": d,
+                    "media_format": self.metadata["media_format"],
+                })
 
             for track in self.tracks:
                 writer.write_array_block("tracks", {
                     "position": track["position"],
+                    "disc_position": track.get("original_position", ""),
                     "title": track["title"],
                 })
 
