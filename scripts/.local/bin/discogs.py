@@ -152,12 +152,16 @@ def get_track_artists(track, release_artists) -> dict:
     primary = set()
     featured = set()
 
-    # add main release artists
+    # add main release artists.
+    # this block add all or remain default album artists in track.
+    # only add primary if tracklist.artists it's empty, and,
+    # never when various.
     for a in release_artists:
         if a and a.lower() != "various":
-            primary.add(normalize_title(a))
+            if track.artists == []:
+                primary.add(normalize_title(a))
     if "Various Artists" in release_artists:
-        primary.remove("Various Artists")
+        primary.discard("Various Artists")
 
     # lead artists from tracks
     for a in getattr(track, "artists", []) or []:
@@ -492,11 +496,6 @@ class DiscogsReleaseProcessor:
 
             writer = TomlWriter(f)
 
-            writer.write_block("sources", {
-                "discogs": True,
-                "musicbrainz": True,
-            })
-
             writer.write_block("release", {
                 "title": self.metadata["album_title"],
                 "artist": self.metadata["album_artist"],
@@ -530,8 +529,15 @@ class DiscogsReleaseProcessor:
 
                 if track["artists"]["featured"]:
                     artists_block["featured"] = track["artists"]["featured"]
+                    artists_block["add_featured_in_title"] = False
+                    artists_block["add_featured_in_artists"] = False
 
                 writer.write_subblock("tracks", "artists", artists_block)
+
+            writer.write_block("sources", {
+                "discogs": True,
+                "musicbrainz": True,
+            })
 
             writer.write_block("ids.musicbrainz", {
                 "artist": self.metadata["musicbrainz_artistid"],
