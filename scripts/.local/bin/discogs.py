@@ -236,7 +236,7 @@ def safe_get(data, path, default=None):
                 data = data[key] if len(data) > key else default
             else:
                 data = getattr(data, key, default)
-        return data if data not in [None, 0] else default
+        return default if data is None else data
     except (IndexError, KeyError, TypeError, AttributeError) as e:
         logging.warning(f"Error accessing {' -> '.join(map(str, path))}: {e}")
         return default
@@ -519,17 +519,17 @@ class DiscogsReleaseProcessor:
             if len(track_artists["primary"]) > 1:
                 has_multiple = True
 
-            # disc_num correto
-            disc_num = extract_disc_num(t["position"])
-            if disc_num < 1:
-                disc_num = 1  # fallback seguro
+            # disc_number correto
+            disc_number = extract_disc_num(t["position"])
+            if disc_number < 1:
+                disc_number = 1  # fallback seguro
 
             tracks.append({
                 "position": t["track"],
                 "original_position": normalize_track_position(t["position"]),
                 "title": normalize_title(t["title"]),
                 "artists": track_artists,
-                "disc_num": disc_num
+                "disc_number": disc_number
             })
 
         return has_multiple, tracks
@@ -542,8 +542,8 @@ class DiscogsReleaseProcessor:
         from collections import defaultdict
         disc_counts = defaultdict(int)
         for track in self.tracks:
-            disc_num = track.get("disc_num", 1)
-            disc_counts[disc_num] += 1
+            disc_number = track.get("disc_number", 1)
+            disc_counts[disc_number] += 1
 
         with open(info_file, "w", encoding="utf-8") as f:
             f.write('schema = "music.library.release"\n')
@@ -584,7 +584,7 @@ class DiscogsReleaseProcessor:
             for track in self.tracks:
                 track_block = { "position": track["position"] }
                 if self.metadata["total_discs"] > 1:
-                    track_block["disc_num"] = track["disc_num"]
+                    track_block["disc_number"] = track["disc_number"]
                 track_block["title"] = track["title"]
 
                 writer.write_array_block("tracks", track_block)
