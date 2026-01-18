@@ -10,10 +10,9 @@ import re
 import os
 import argparse
 import requests
-from datetime import datetime, timedelta
+import json
 import discogs_client
 from discogs_client.models import Track
-import json
 from pathlib import Path
 from typing import List, Dict, Tuple, Union
 import logging
@@ -69,6 +68,23 @@ def toml_string(value: str) -> str:
     return f'"{value.replace("\"", "\\\"")}"'
 
 
+def extract_disc_num(position: str) -> int:
+    """
+    Extrai o número do disco de uma posição de faixa Discogs.
+    Padrões comuns:
+        '1-5', '1:4', '1 5' -> 1
+        '2-1', '2:3' -> 2
+        '-', '' -> 1 (fallback)
+    """
+    if not position or position in ("", "-"):
+        return 1
+
+    pos = position.strip()
+    match = re.match(r"(\d+)", pos)
+    if match:
+        return int(match.group(1))
+
+    return 1
 # list of items to set as lowercase
 def normalize_title(title: str) -> str:
     lower_words = {
@@ -105,8 +121,20 @@ def normalize_title(title: str) -> str:
 
     return "".join(result)
 
+def normalize_track_position(position: str) -> str:
+    if not position:
+        return ""
+
+    pos = position.strip()
+    if pos in ("", "-"):
+        return ""
+
+    pos = re.sub(r"\s*[:]\s*", "-", pos)
+    pos = re.sub(r"\s+", "", pos)
+    return pos
 
 def cache_get(key: str, max_age_days: int = 7):
+    from datetime import datetime, timedelta
     """Retorna dados do cache se ainda válidos"""
     cache_file = DISCOGS_CACHE_DIR / f"{key}.json"
     if cache_file.exists():
@@ -226,7 +254,7 @@ def get_cover(front_url: str, output_path: Path) -> None:
 
 
 # create and move files to album folder if it not exists
-def move_files(info_file: Path, cover_file: Path, album_path: Path):
+def create_folder(info_file: Path, cover_file: Path, album_path: Path):
     """move info and cover files into album folder"""
     if album_path.exists():
         logging.warning(f"Folder already exists → {album_path}")
@@ -357,9 +385,9 @@ class DiscogsReleaseProcessor:
             return {}
 
         # to use in musicbrainz search
-        self.original_artists_list = [ artist.name for artist in self.release.artists ]
-        self.original_artists = ', '.join(self.original_artists_list)
-        mb_artist = self.original_artists if self.original_artists else ""
+        original_artists_list = [ artist.name for artist in self.release.artists ]
+        original_artists = ', '.join(original_artists_list)
+        mb_artist = original_artists if original_artists else ""
         mb_release = self.release.title if hasattr(self.release, "title") else ""
 
         if not mb_artist or not mb_release:
@@ -455,21 +483,12 @@ class DiscogsReleaseProcessor:
 
 
     def _extract_tracks(self) -> Tuple[bool, List[Dict[str, Union[int, str]]]]:
-        """
-        Extrai as faixas do release, normalizando títulos, posições e artistas.
-
-        Retorna:
-            has_multiple (bool): True se alguma faixa tiver múltiplos artistas primários
-            tracks (List[Dict]): Lista de faixas com posição canônica, posição editorial, título e artistas
-        """
-        # normaliza a tracklist (ignora separadores e faixas vazias)
-        default_tracklist = self.release.tracklist or getattr(self.release, 'master', {}).tracklist
+        # normalize tracklist (exclude empty spaces and unificate separator)
+        default_tracklist = self.release.tracklist or safe_get(self.release, ['master', 'tracklist'], [])
         normalized_tracks = normalize_discogs_tracklist(default_tracklist)
 
         tracks = []
         has_multiple = False
-
-        # ponteiro para tracklist original
         tracklist_idx = 0
 
         for t in normalized_tracks:
@@ -487,9 +506,9 @@ class DiscogsReleaseProcessor:
                     track_obj = candidate
                     break
 
-            # fallback: se não encontrou objeto original (não deveria ocorrer)
             if track_obj is None:
-                track_obj = Track(self.release)  # cria dummy
+                # fallback
+                track_obj = Track(self.release)
                 track_obj.title = t["title"]
                 track_obj.position = t["position"]
                 track_obj.artists = []
@@ -497,29 +516,34 @@ class DiscogsReleaseProcessor:
             # extrai artistas
             track_artists = get_track_artists(track_obj, self.release_artists)
 
-            # atualiza flag de múltiplos artistas
             if len(track_artists["primary"]) > 1:
                 has_multiple = True
 
-            # adiciona faixa à lista final
+            # disc_num correto
+            disc_num = extract_disc_num(t["position"])
+            if disc_num < 1:
+                disc_num = 1  # fallback seguro
+
             tracks.append({
                 "position": t["track"],
-                "original_position": t["position"],
+                "original_position": normalize_track_position(t["position"]),
                 "title": normalize_title(t["title"]),
-                "artists": track_artists
+                "artists": track_artists,
+                "disc_num": disc_num
             })
-
-        # valida integridade (opcional, mas recomendado)
-        expected_positions = list(range(1, len(tracks) + 1))
-        actual_positions = [tr["position"] for tr in tracks]
-        if actual_positions != expected_positions:
-            logging.warning(f"Track positions mismatch: {actual_positions} (expected {expected_positions})")
 
         return has_multiple, tracks
 
 
     def write_info_file(self):
         info_file = self.output_dir / "info_.toml"
+
+        # calcula total_tracks por disco
+        from collections import defaultdict
+        disc_counts = defaultdict(int)
+        for track in self.tracks:
+            disc_num = track.get("disc_num", 1)
+            disc_counts[disc_num] += 1
 
         with open(info_file, "w", encoding="utf-8") as f:
             f.write('schema = "music.library.release"\n')
@@ -545,26 +569,35 @@ class DiscogsReleaseProcessor:
             })
 
             for d in range(1, self.metadata["total_discs"] + 1):
-                writer.write_array_block("discs", {
-                    "index": d,
-                    "media_format": self.metadata["media_format"],
-                })
+                if self.metadata["total_discs"] > 1:
+                    writer.write_array_block("discs", {
+                        "index": d,
+                        "media_format": self.metadata["media_format"],
+                        "total_tracks": disc_counts.get(d, 0),
+                    })
+                else:
+                    writer.write_array_block("discs", {
+                        "index": d,
+                        "media_format": self.metadata["media_format"],
+                    })
 
             for track in self.tracks:
-                writer.write_array_block("tracks", {
-                    "position": track["position"],
-                    "disc_position": track.get("original_position", ""),
-                    "title": track["title"],
-                })
+                track_block = { "position": track["position"] }
+                if self.metadata["total_discs"] > 1:
+                    track_block["disc_num"] = track["disc_num"]
+                track_block["title"] = track["title"]
+
+                writer.write_array_block("tracks", track_block)
 
                 artists_block = {
                     "primary": track["artists"]["primary"]
                 }
-
                 if track["artists"]["featured"]:
-                    artists_block["featured"] = track["artists"]["featured"]
-                    artists_block["add_featured_in_title"] = False
-                    artists_block["add_featured_in_artists"] = False
+                    artists_block.update({
+                        "featured": track["artists"]["featured"],
+                        "add_featured_in_title": False,
+                        "add_featured_in_artists": False
+                    })
 
                 writer.write_subblock("tracks", "artists", artists_block)
 
@@ -603,11 +636,11 @@ class DiscogsReleaseProcessor:
         get_cover(self.release.images[0]["uri"], self.output_dir)
 
 
-    def move_files(self):
+    def move_folder(self):
         album_name = f"{self.metadata['release_year']} - {self.metadata['album_title']}"
         album_name = sanitize_path_name(album_name)
         album_path = self.output_dir / album_name
-        move_files(self.output_dir / "info.toml", self.output_dir / "folder-tmp.jpg", album_path)
+        create_folder(self.output_dir / "info_.toml", self.output_dir / "folder-tmp.jpg", album_path)
 
 
 # ---------------------------
@@ -630,13 +663,15 @@ def get_tags(release_id: str):
         return
 
     processor.write_info_file()
-    processor.move_files()
+
+    if not args.batch:
+        processor.move_folder()
 
 
 # search release from text
 def search_id(search_item: str):
     try:
-        auth_search.search(search_item)
+        result = auth_search.search(search_item, type="release", format=args.type)
     except discogs_client.exceptions.HTTPError:
         logging.error("Bad release search")
         return
@@ -644,7 +679,6 @@ def search_id(search_item: str):
         logging.error(err)
         return
 
-    result = auth_search.search(search_item, type="release", format=args.type)
     if result.count:
         release = result[0]
         logging.info(f"Match: {release.title}")
