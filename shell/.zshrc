@@ -174,3 +174,6 @@ function y() {
     [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
     rm -f -- "$tmp"
 }
+
+export SOUND_SINK=$(pactl info | grep 'Default Sink' | awk '{print $3}')
+export MASTER_SINK=$(pactl list short sinks | grep -v mono_sink | awk '{print $2}')
