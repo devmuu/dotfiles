@@ -41,7 +41,10 @@
             "1":       SwitchToTab("Queue"),
             "2":       SwitchToTab("Library"),
             "3":       SwitchToTab("Playlists"),
-            "4":       SwitchToTab("Search"),
+            "4":       SwitchToTab("Group"),
+            "5":       SwitchToTab("Mood"),
+            "6":       SwitchToTab("Genre"),
+            "7":       SwitchToTab("Search"),
             "q":       Quit,
             ">":       NextTrack,
             "p":       TogglePause,
@@ -154,6 +157,18 @@
         (
          name: "Playlists",
          pane: Pane(Playlists),
+        ),
+        (
+         name: "Group",
+         pane: Pane(Browser(root_tag: "grouping")),
+        ),
+        (
+         name: "Mood",
+         pane: Pane(Browser(root_tag: "mood")),
+        ),
+        (
+         name: "Genre",
+         pane: Pane(Browser(root_tag: "genre")),
         ),
         (
          name: "Search",
