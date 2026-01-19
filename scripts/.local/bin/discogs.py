@@ -48,30 +48,42 @@ DISCOGS_CACHE_DIR.mkdir(exist_ok=True)
 
 FEAT_RE = re.compile(r"\((?:feat\.|ft\.|featuring) ([^)]+)\)", re.I)
 
-# remove invalid chars in path
+# remove invalid chars in path to use year - album_name as path.
 def sanitize_path_name(name: str) -> str:
-    """remove invalid characters for folders/files"""
     return re.sub(r'[\\/:"*?<>|]+', "", name)
 
+# remove (idx) from artists names
+def sanitize_artist_name(name: str) -> str:
+    return re.sub(r"\s*\(\d+\)$", "", name).strip()
 
-# escape broken char in toml file
-def toml_escape(value: str) -> str:
-    return value.replace('"', '\\"')
+# extract release stats safe
+def extract_release_stats(release_format: dict) -> dict:
+    """
+    the default in discogs release if format type is equal to File is to use
+    the same value to qty and files.
+    """
+    release_type = safe_get(release_format, ['name'], 'CD')
+    release_descriptions = safe_get(release_format, ['descriptions'], [])
 
-def toml_list(lst):
-    return "[" + ", ".join([toml_string(i) for i in lst]) + "]"
+    if release_type == 'File':
+        qtd = 1
+    else:
+        qtd = int(safe_get(release_format, ['qty'], 1))
 
-# normalize toml strings
-def toml_string(value: str) -> str:
-    if value is None:
-        return '""'
-    return f'"{value.replace("\"", "\\\"")}"'
+    # flag to indicate if a release require a multi disc format
+    multi_disc_flag = True if release_type == 'CD' and qtd > 1 else False
 
+    return {
+        "media_format": release_type,
+        "total_discs": qtd,
+        "descriptions": release_descriptions,
+        "multi_disc_flag": multi_disc_flag,
+    }
 
+# sanitize and extrac first digit from origin position in multi-disc release.
 def extract_disc_num(position: str) -> int:
     """
-    Extrai o número do disco de uma posição de faixa Discogs.
-    Padrões comuns:
+    common patterns:
         '1-5', '1:4', '1 5' -> 1
         '2-1', '2:3' -> 2
         '-', '' -> 1 (fallback)
@@ -85,7 +97,21 @@ def extract_disc_num(position: str) -> int:
         return int(match.group(1))
 
     return 1
-# list of items to set as lowercase
+
+# return "" if '-' it's defined as position
+def normalize_track_position(position: str) -> str:
+    if not position:
+        return ""
+
+    pos = position.strip()
+    if pos in ("", "-"):
+        return ""
+
+    pos = re.sub(r"\s*[:]\s*", "-", pos)
+    pos = re.sub(r"\s+", "", pos)
+    return pos
+
+# list of items to set as lowercase.
 def normalize_title(title: str) -> str:
     lower_words = {
         # portuguese
@@ -121,21 +147,10 @@ def normalize_title(title: str) -> str:
 
     return "".join(result)
 
-def normalize_track_position(position: str) -> str:
-    if not position:
-        return ""
-
-    pos = position.strip()
-    if pos in ("", "-"):
-        return ""
-
-    pos = re.sub(r"\s*[:]\s*", "-", pos)
-    pos = re.sub(r"\s+", "", pos)
-    return pos
-
+# get cache file
 def cache_get(key: str, max_age_days: int = 7):
     from datetime import datetime, timedelta
-    """Retorna dados do cache se ainda válidos"""
+
     cache_file = DISCOGS_CACHE_DIR / f"{key}.json"
     if cache_file.exists():
         mtime = datetime.fromtimestamp(cache_file.stat().st_mtime)
@@ -144,14 +159,13 @@ def cache_get(key: str, max_age_days: int = 7):
                 return json.load(f)
     return None
 
-
+# create release cache to use
 def cache_set(key: str, data):
-    """Salva dados no cache"""
     cache_file = DISCOGS_CACHE_DIR / f"{key}.json"
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
+# export tracklist from original release.tracklist from discogs.
 def normalize_discogs_tracklist(tracks: List[Track]) -> List[Dict]:
     normalized = []
     counter = 1
@@ -160,11 +174,11 @@ def normalize_discogs_tracklist(tracks: List[Track]) -> List[Dict]:
         position = t.position.strip() if t.position else ""
         title = t.title.strip() if t.title else ""
 
-        # Ignora separadores
+        # ignore separators
         if title in ("", "-") and position == "":
             continue
 
-        # Adiciona track normalizada
+        # add normalized track
         normalized.append({
             "track": counter,
             "position": position,
@@ -195,6 +209,7 @@ def get_track_artists(track, release_artists) -> dict:
     for a in getattr(track, "artists", []) or []:
         if getattr(a, "name", None):
             name = normalize_title(a.name)
+            name = sanitize_artist_name(name).strip()
             if name.lower() != "various":
                 primary.add(name)
 
@@ -205,9 +220,10 @@ def get_track_artists(track, release_artists) -> dict:
         if not name:
             continue
         name = normalize_title(name)
+        name = sanitize_artist_name(name).strip()
 
         # keys to allow use as featured
-        if any(k in role for k in ("feat", "ft", "featuring")):
+        if any(k in role for k in ("feat", "ft", "featuring", "vocals")):
             featured.add(name)
 
     # detect features in track title
@@ -226,7 +242,7 @@ def get_track_artists(track, release_artists) -> dict:
     }
 
 
-# verify if key exists
+# verify if key exists.
 def safe_get(data, path, default=None):
     try:
         for key in path:
@@ -274,7 +290,7 @@ class TomlWriter:
         self.started = False
 
     # -----------------------
-    # Helpers internos
+    # Helpers
     # -----------------------
     def _newline(self):
         if self.started:
@@ -299,7 +315,7 @@ class TomlWriter:
         self.f.write(f"{key} = {self._format_value(value)}\n")
 
     # -----------------------
-    # API pública
+    # API
     # -----------------------
     def write_block(self, name: str, values: dict):
         """Escreve [block]"""
@@ -351,9 +367,20 @@ class DiscogsReleaseProcessor:
         else:
             self.album_artist = self.release_artists[0]
 
+
         self.metadata = self._extract_metadata()
         self.multi_artist, self.tracks = self._extract_tracks()
-        self.metadata.update(self._extract_musicbrainz())
+        # self.metadata.update(self._extract_musicbrainz())
+
+        # if musicbrainz down
+        result_null = {
+            "release_date": "",
+            "musicbrainz_artistid": "",
+            "musicbrainz_albumid": "",
+            "musicbrainz_releasegroupid": ""
+        }
+
+        self.metadata.update(result_null)
 
         cache_set(self.cache_key, {
             "metadata": self.metadata,
@@ -364,7 +391,7 @@ class DiscogsReleaseProcessor:
 
 
     def _get_release_group(self) -> str:
-        desc = self.metadata["descriptions"]
+        desc = self.metadata["stats"]["descriptions"]
         if "Compilation" in desc:
             return "Compilation"
         if "Single" in desc:
@@ -375,12 +402,12 @@ class DiscogsReleaseProcessor:
             return "EP"
         return "Album"
 
-
+    # extract release info from musicbrainz
     def _extract_musicbrainz(self) -> dict:
         import musicbrainzngs
         musicbrainzngs.set_useragent('musicApp', '0.1', 'localhost')
 
-        # Se não tiver artistas ou título, retorna vazio
+        # if not contains artist or title, return empty.
         if not hasattr(self, "release_artists") or not hasattr(self, "release"):
             return {}
 
@@ -400,7 +427,7 @@ class DiscogsReleaseProcessor:
             return cached
         # ---------------------------
 
-        # Consulta MusicBrainz
+        # MusicBrainz search
         try:
             search_info = musicbrainzngs.search_releases(
                 artist=mb_artist,
@@ -420,7 +447,7 @@ class DiscogsReleaseProcessor:
         if not release_id:
             return {}
 
-        # Consulta detalhada do release
+        # most detail search to refine results.
         try:
             mb_release_full = musicbrainzngs.get_release_by_id(
                 release_id, includes=['artists','release-groups']
@@ -432,16 +459,16 @@ class DiscogsReleaseProcessor:
             print(f"[MusicBrainz ERROR] {err}")
             return {}
 
-        # Artist ID
+        # artist id
         mb_artistid = None
         artist_credit = mb_release_full.get('artist-credit', [])
         if artist_credit and 'artist' in artist_credit[0]:
             mb_artistid = artist_credit[0]['artist'].get('id')
 
-        # Release Group ID
+        # release group id
         mb_releasegroupid = mb_release_full.get('release-group', {}).get('id', '')
 
-        # Release date
+        # release date
         rg = mb_release_full.get('release-group', {})
         release_date = rg.get('first-release-date', None)
         if release_date:
@@ -460,7 +487,7 @@ class DiscogsReleaseProcessor:
             "musicbrainz_releasegroupid": mb_releasegroupid or ""
         }
 
-        # ---------- Salva no cache ----------
+        # --------- save in cache -----------
         cache_set(cache_key, result)
         # -----------------------------------
 
@@ -471,11 +498,9 @@ class DiscogsReleaseProcessor:
         return {
             "album_title": normalize_title(self.release.title) or normalize_title(self.release.master.title),
             "release_year": safe_get(self.release, ['year'], safe_get(self.release.master, ['year'], 1900)),
-            "total_discs": int(safe_get(self.release, ['formats', 0, 'qty'], 1)),
             "album_artist": normalize_title(self.album_artist),
-            "media_format": safe_get(self.release, ['formats', 0, 'name'], 'Digital Media'),
             "region": safe_get(self.release, ['country'], 'Unknown'),
-            "descriptions": safe_get(self.release, ['formats', 0, 'descriptions'], []),
+            "stats": extract_release_stats(self.release.formats[0]),
             "genres": self.release.genres if self.release.genres else [],
             "styles": self.release.styles if self.release.styles else [],
             "publishers": [publisher.name for publisher in self.release.labels] if self.release.labels else [],
@@ -491,10 +516,11 @@ class DiscogsReleaseProcessor:
         has_multiple = False
         tracklist_idx = 0
 
+        # t will be -> {'track': idx, 'position': '1', 'title': 'TrackName'}
         for t in normalized_tracks:
             track_obj = None
 
-            # avança na tracklist original até achar a próxima faixa válida
+            # loop thougth tracklist until find next valid track
             while tracklist_idx < len(self.release.tracklist):
                 candidate = self.release.tracklist[tracklist_idx]
                 tracklist_idx += 1
@@ -506,6 +532,7 @@ class DiscogsReleaseProcessor:
                     track_obj = candidate
                     break
 
+            # track_obj it is a current valid track. <Track 'Position' 'Title'>
             if track_obj is None:
                 # fallback
                 track_obj = Track(self.release)
@@ -513,17 +540,21 @@ class DiscogsReleaseProcessor:
                 track_obj.position = t["position"]
                 track_obj.artists = []
 
-            # extrai artistas
+            # extract artists.
+            # send current track obj and release artists list as parameters.
+            # track artists returned with primary and featured artists.
             track_artists = get_track_artists(track_obj, self.release_artists)
 
+            # set has_multiple flag.
             if len(track_artists["primary"]) > 1:
                 has_multiple = True
 
-            # disc_number correto
+            # right disc_number.
             disc_number = extract_disc_num(t["position"])
             if disc_number < 1:
-                disc_number = 1  # fallback seguro
+                disc_number = 1  # secure fallback
 
+            # return object
             tracks.append({
                 "position": t["track"],
                 "original_position": normalize_track_position(t["position"]),
@@ -534,7 +565,7 @@ class DiscogsReleaseProcessor:
 
         return has_multiple, tracks
 
-
+    # write all release info in a toml file using toml class helper.
     def write_info_file(self):
         info_file = self.output_dir / "info_.toml"
 
@@ -564,26 +595,28 @@ class DiscogsReleaseProcessor:
 
             writer.write_block("release.extra", {
                 "region": self.metadata["region"],
-                "descriptions": self.metadata["descriptions"],
+                "descriptions": self.metadata["stats"]["descriptions"],
                 "styles": self.metadata["styles"],
             })
 
-            for d in range(1, self.metadata["total_discs"] + 1):
-                if self.metadata["total_discs"] > 1:
+            print(self.metadata["stats"]["total_discs"])
+
+            for d in range(1, self.metadata["stats"]["total_discs"] + 1):
+                if self.metadata["stats"]["multi_disc_flag"]:
                     writer.write_array_block("discs", {
                         "index": d,
-                        "media_format": self.metadata["media_format"],
+                        "media_format": self.metadata["stats"]["media_format"],
                         "total_tracks": disc_counts.get(d, 0),
                     })
                 else:
                     writer.write_array_block("discs", {
                         "index": d,
-                        "media_format": self.metadata["media_format"],
+                        "media_format": self.metadata["stats"]["media_format"],
                     })
 
             for track in self.tracks:
                 track_block = { "position": track["position"] }
-                if self.metadata["total_discs"] > 1:
+                if self.metadata["stats"]["multi_disc_flag"]:
                     track_block["disc_number"] = track["disc_number"]
                 track_block["title"] = track["title"]
 
@@ -627,7 +660,7 @@ class DiscogsReleaseProcessor:
 
             f.write("\n")
 
-
+    # download first image find in release
     def download_cover(self):
         if not self.release.images:
             logging.error(f"No cover for: {self.metadata['album_title']}")
@@ -635,12 +668,12 @@ class DiscogsReleaseProcessor:
         logging.info(f"Downloading cover for: {self.metadata['album_title']}")
         get_cover(self.release.images[0]["uri"], self.output_dir)
 
-
+    # save downloaded files in a album folder
     def move_folder(self):
-        album_name = f"{self.metadata['release_year']} - {self.metadata['album_title']}"
-        album_name = sanitize_path_name(album_name)
-        album_path = self.output_dir / album_name
-        create_folder(self.output_dir / "info_.toml", self.output_dir / "folder-tmp.jpg", album_path)
+        album_folder_name = f"{self.metadata['release_year']} - {self.metadata['album_title']}"
+        album_folder_name = sanitize_path_name(album_folder_name)
+        album_folder_path = self.output_dir /album_folder_name
+        create_folder(self.output_dir / "info_.toml", self.output_dir / "folder-tmp.jpg", album_folder_path)
 
 
 # ---------------------------
@@ -664,6 +697,7 @@ def get_tags(release_id: str):
 
     processor.write_info_file()
 
+    # only create album folder when not in batch mode
     if not args.batch:
         processor.move_folder()
 
