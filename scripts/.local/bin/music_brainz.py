@@ -17,8 +17,18 @@ import argparse
 
 import musicbrainzngs
 
+import socket
+
+_orig_getaddrinfo = socket.getaddrinfo
+
+def ipv4_only(*args, **kwargs):
+    return [r for r in _orig_getaddrinfo(*args, **kwargs) if r[0] == socket.AF_INET]
+
+socket.getaddrinfo = ipv4_only
+
 # base client
 musicbrainzngs.set_useragent('musicApp', '0.1', 'localhost')
+musicbrainzngs.set_rate_limit(True)
 
 parser = argparse.ArgumentParser(
     description='Get music information by musicbrainzngs.'
@@ -81,15 +91,14 @@ def get_release(release_id) -> None:
     """get release info from release id"""
     if release_id:
         try:
-            musicbrainzngs.get_release_by_id(release_id)
+            release = musicbrainzngs.get_release_by_id(
+                release_id, includes=['artists', 'recordings']
+            )
         except musicbrainzngs.musicbrainz.ResponseError:
             print('Bad release id')
         except Exception as err:
             print(f'Error: {err}')
         else:
-            release = musicbrainzngs.get_release_by_id(
-                release_id, includes=['artists', 'recordings']
-            )
             # using get to prevent error and return None if no value
             release_value = release.get('release')
             artist = release_value.get('artist-credit-phrase')
