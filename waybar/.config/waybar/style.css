@@ -253,6 +253,13 @@ window#waybar.termite {
     color: @foreground;
 }
 
+#custom-master_volume {
+    background-color: @background;
+    border-bottom: 3px solid @color2;
+    margin: 0 5px;
+    color: @foreground;
+}
+
 #custom-wttr_in {
     background-color: @background;
     border-bottom: 3px solid @current_line;

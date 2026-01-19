@@ -23,7 +23,7 @@
 
     "modules-right": [
         "bluetooth",
-        "pulseaudio",
+        "custom/master_volume",
         "backlight",
         "temperature",
         "network",
@@ -240,6 +240,15 @@
         "format": "{}",
         "interval": 1,
         "on-click": "fcitx5-remote -t"
+    },
+
+    "custom/master_volume": {
+        "exec": "${HOME}/.config/waybar/scripts/master_volume.sh value",
+        "interval": 1,
+        "on-scroll-up": "pactl set-sink-volume alsa_output.pci-0000_06_00.6.analog-stereo +5%",
+        "on-scroll-down": "pactl set-sink-volume alsa_output.pci-0000_06_00.6.analog-stereo -5%",
+        "on-click-middle": "pactl set-sink-mute alsa_output.pci-0000_06_00.6.analog-stereo toggle",
+        "on-click": "pavucontrol"
     },
 
     "custom/wttr_in": {
