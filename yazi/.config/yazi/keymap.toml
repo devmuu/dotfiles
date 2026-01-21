@@ -390,7 +390,7 @@ desc = "Convert image to jpg."
 
 [[mgr.prepend_keymap]]
 on = [ "u", "c" ]
-run = "shell 'magick $0 -resize 1000x -quality 100 cover.jpg'"
+run = "shell 'magick \"$0\" -resize 1000x -quality 100 cover.jpg'"
 desc = "Convert image to cover default."
 
 [[mgr.prepend_keymap]]

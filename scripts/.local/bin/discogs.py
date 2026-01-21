@@ -370,17 +370,16 @@ class DiscogsReleaseProcessor:
 
         self.metadata = self._extract_metadata()
         self.multi_artist, self.tracks = self._extract_tracks()
-        # self.metadata.update(self._extract_musicbrainz())
+        self.metadata.update(self._extract_musicbrainz())
 
         # if musicbrainz down
-        result_null = {
-            "release_date": "",
-            "musicbrainz_artistid": "",
-            "musicbrainz_albumid": "",
-            "musicbrainz_releasegroupid": ""
-        }
-
-        self.metadata.update(result_null)
+        # result_null = {
+        #     "release_date": "",
+        #     "musicbrainz_artistid": "",
+        #     "musicbrainz_albumid": "",
+        #     "musicbrainz_releasegroupid": ""
+        # }
+        # self.metadata.update(result_null)
 
         cache_set(self.cache_key, {
             "metadata": self.metadata,
@@ -397,7 +396,7 @@ class DiscogsReleaseProcessor:
         if "Single" in desc:
             return "Single"
         if "LP" in desc:
-            return "LP"
+            return "Album"
         if "EP" in desc:
             return "EP"
         return "Album"
@@ -406,6 +405,7 @@ class DiscogsReleaseProcessor:
     def _extract_musicbrainz(self) -> dict:
         import musicbrainzngs
         musicbrainzngs.set_useragent('musicApp', '0.1', 'localhost')
+        musicbrainzngs.set_rate_limit(True)
 
         # if not contains artist or title, return empty.
         if not hasattr(self, "release_artists") or not hasattr(self, "release"):
@@ -472,16 +472,20 @@ class DiscogsReleaseProcessor:
         rg = mb_release_full.get('release-group', {})
         release_date = rg.get('first-release-date', None)
         if release_date:
-            parts = release_date.split('-')
-            if len(parts) == 1:
-                release_date = parts[0]          # YYYY
-            elif len(parts) == 2:
-                release_date = '-'.join(parts)   # YYYY-MM
-            elif len(parts) == 3:
-                release_date = '-'.join(parts)   # YYYY-MM-DD
+            date_str = release_date.strip()
+            # YYYY
+            if re.fullmatch(r"\d{4}", date_str):
+                release_date = [f"{date_str}-01-01", "year"]
+            # YYYY-MM
+            if re.fullmatch(r"\d{4}-\d{2}", date_str):
+                release_date = [f"{date_str}-01", "month"]
+            # YYYY-MM-DD
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_str):
+                release_date = [date_str, "day"]
 
         result = {
-            "release_date": release_date or "",
+            "release_date": release_date[0] or "",
+            "release_date_precision": release_date[1] or "",
             "musicbrainz_artistid": mb_artistid or "",
             "musicbrainz_albumid": release_id or "",
             "musicbrainz_releasegroupid": mb_releasegroupid or ""
@@ -501,8 +505,8 @@ class DiscogsReleaseProcessor:
             "album_artist": normalize_title(self.album_artist),
             "region": safe_get(self.release, ['country'], 'Unknown'),
             "stats": extract_release_stats(self.release.formats[0]),
-            "genres": self.release.genres if self.release.genres else [],
-            "styles": self.release.styles if self.release.styles else [],
+            "genres": self.release.genres if self.release.genres else ["Unclassified"],
+            "styles": self.release.styles if self.release.styles else ["Unclassified"],
             "publishers": [publisher.name for publisher in self.release.labels] if self.release.labels else [],
         }
 
@@ -589,10 +593,18 @@ class DiscogsReleaseProcessor:
                 "release_type": self._get_release_group(),
                 "release_year": self.metadata["release_year"],
                 "release_date": self.metadata["release_date"],
+                "release_date_precision": self.metadata["release_date_precision"],
                 "publishers": list(dict.fromkeys(self.metadata["publishers"])),
-                "genres": self.metadata["genres"],
             })
 
+            # separate genres for more control
+            genres_primary, *genres_secondary = self.metadata["genres"]
+            writer.write_block("release.genres", {
+                "primary": genres_primary,
+                "secondary": genres_secondary,
+            })
+
+            # extra release info
             writer.write_block("release.extra", {
                 "region": self.metadata["region"],
                 "descriptions": self.metadata["stats"]["descriptions"],
@@ -655,6 +667,10 @@ class DiscogsReleaseProcessor:
                 "locker": False,
                 "write_tags": True,
                 "write_cover": True,
+                "add_secondary_genres": True,
+                "add_subtitle_in_title": True,
+                "add_featured_in_title": True,
+                "add_featured_in_artists": False,
                 "write_mode": "overwrite",
             })
 
