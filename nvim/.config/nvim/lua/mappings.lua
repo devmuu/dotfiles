@@ -35,6 +35,9 @@ map("", "<Space>", "Nop", opts)
 -- map keys in normal mode
 -- ============================================================================
 
+-- unmap ctrl-z
+vim.keymap.set('n', '<C-z>', '<Nop>')
+
 -- save buffer
 map("n", "<leader>w", "<cmd>w<cr>", opts)
 
@@ -53,6 +56,8 @@ map("n", "<leader>h", "<cmd>lua require('telescope.builtin').help_tags()<cr>", o
 
 -- toggle background
 map("n", "<localleader>t", "<cmd>lua toggle_background()<cr>", opts)
+
+map("n", "<F9>", "<cmd>lua git_compile()<cr>", opts)
 
 -- toggle list
 -- map("n", "<localleader>t", "<cmd>set list!<cr>", opts)
@@ -81,8 +86,8 @@ map("n", "<a-l>", "<cmd>bnext<cr>", opts)
 map("n", "J", "mzJ`z", opts)
 
 -- jump 25 lines centering
-map("n", "<up>", "18kzz", opts)
-map("n", "<down>", "18jzz", opts)
+map("n", "<up>", "7kzz", opts)
+map("n", "<down>", "7jzz", opts)
 
 -- center last line view
 map("n", "G", "Gzz", opts)
@@ -104,9 +109,9 @@ map("n", "<c-u>", "<c-u>zz", opts)
 map("n", "<c-d>", "<c-d>zz", opts)
 
 -- run code with compile script
-map("n", "<c-b>", "<cmd>:w<cr><cmd>silent ! ~/.local/bin/compile %<cr>", opts)
+-- map("n", "<c-b>", "<cmd>:w<cr><cmd>silent ! ~/.local/bin/compile %<cr>", opts)
 
-map("n", "<c-c>", "<cmd>:w<cr><cmd>terminal ~/.local/bin/compile %<cr>", opts)
+-- map("n", "<c-c>", "<cmd>:w<cr><cmd>terminal ~/.local/bin/compile %<cr>", opts)
 
 -- move between splits
 map("n", "<c-h>", "<c-w>h", opts)
@@ -147,10 +152,10 @@ map("n", "<a-k>", "<cmd>lua require('telescope.builtin').colorscheme()<cr>", opt
 map("i", "jk", "<esc>", opts)
 
 -- comment line in insert mode
-map("i", "<c-c>", "<esc>gccA", { noremap = false })
+-- map("i", "<c-c>", "<esc>gccA", { noremap = false })
 
 -- send current line to R terminal
-map("i", "<S-CR>", "<cmd>lua SendValue(0)<cr>", opts)
+-- map("i", "<s-cr>", "<cmd>lua SendValue(0)<cr>", opts)
 
 -- switch to terminal split and enter in insert mode
 -- map("i", "<c-m>", "<esc><c-w>li", opts)

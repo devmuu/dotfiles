@@ -177,3 +177,8 @@ function y() {
 
 export SOUND_SINK=$(pactl info | grep 'Default Sink' | awk '{print $3}')
 export MASTER_SINK=$(pactl list short sinks | grep -v mono_sink | awk '{print $2}')
+
+export QSYS_ROOTDIR="${HOME}/altera_lite/25.1std/quartus/sopc_builder/bin"
+
+# Added by Quartus Prime software
+export SALT_LICENSE_FILE="$SALT_LICENSE_FILE;${HOME}/.altera.quartus/questa_lic.dat"

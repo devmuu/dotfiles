@@ -139,14 +139,14 @@
          pane: Split(
              direction: Vertical,
              panes: [
-                 (size: "55%", pane: Split(
+                 (size: "50%", pane: Split(
                      direction: Horizontal,
                      panes: [
-                         (size: "75%", pane: Pane(Queue)),
-                         (size: "25%", pane: Pane(AlbumArt)),
+                         (size: "85%", pane: Pane(Queue)),
+                         (size: "15%", pane: Pane(AlbumArt)),
                      ],
                  )),
-                 (size: "45%", pane: Pane(Cava), borders: "TOP"),
+                 (size: "50%", pane: Pane(Cava), borders: "TOP"),
              ],
              ),
         ),
@@ -161,6 +161,10 @@
         (
          name: "Group",
          pane: Pane(Browser(root_tag: "grouping")),
+        ),
+        (
+         name: "Artists",
+         pane: Pane(Browser(root_tag: "artist")),
         ),
         (
          name: "Mood",

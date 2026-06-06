@@ -380,7 +380,7 @@ desc = "Fix mp3 length."
 
 [[mgr.prepend_keymap]]
 on = [ "u", "t" ]
-run = "shell 'distrobox enter archlinux -- ~/.local/bin/tagger %d --apply-and-rename' --block"
+run = "shell 'distrobox enter archlinux -- ~/.local/bin/tagger %d --apply-and-rename ; sleep 2' --block"
 desc = "Set music tags."
 
 [[mgr.prepend_keymap]]

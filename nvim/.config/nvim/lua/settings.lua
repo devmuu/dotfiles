@@ -147,13 +147,29 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     end
 })
 
+-- tex
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+    pattern = { "*.tex" },
+    callback = function()
+        vim.opt["filetype"] = "tex"
+    end
+})
+
 -- markdown
 vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
     pattern = { "*.md", "*.qmd" },
     callback = function()
         vim.api.nvim_command('syntax match Entity "&amp;" conceal cchar=&')
-        vim.o.conceallevel = 2
+        vim.o.conceallevel = 0
         vim.o.concealcursor = "nc"
+    end
+})
+
+-- verilog
+vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
+    pattern = { "*.verilog", "*.vl" },
+    callback = function()
+        vim.opt["filetype"] = "verilog"
     end
 })
 
