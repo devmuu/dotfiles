@@ -126,4 +126,27 @@ function toggle_completion()
     end
 end
 
+function git_compile()
+    local root = vim.fs.root(0, ".git")
+
+    if not root then
+        vim.notify("Não é um repositório Git", vim.log.levels.WARN)
+        return
+    end
+
+    -- print("Compilando: " .. root)
+
+    vim.fn.jobstart({
+        "distrobox",
+        "enter",
+        "archlinux",
+        "--",
+        "make",
+        "-C",
+        root
+    }, {
+        detach = true,
+    })
+end
+
 return M
