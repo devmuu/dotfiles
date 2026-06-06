@@ -80,16 +80,26 @@ perform_backup() {
     PREFIX="$2"
     LABEL="$3"
 
-    RSYNC_ARGS="-avh --inplace --no-whole-file --delete-before --info=progress2"
+    RSYNC_ARGS="-avh --delete --info=progress2"
 
     echo "Init backup..."
 
     sleep 1
 
-    rsync ${RSYNC_ARGS} \
-        /home/storage/misc/media/audio/ ${MOUNT_POINT}/${PREFIX}misc/media/audio
+    if [[ ${LABEL} == "storage-04" ]]; then
+        # rsync -avh --delete --info=progress2 \
+        #     --exclude 'music/' \
+        #     /home/storage/misc/media/audio/ ${MOUNT_POINT}/${PREFIX}misc/media/audio
+        #
+        rsync -avh --delete --info=progress2 \
+            --exclude '*.flac' --exclude '*.mp3' \
+            ${MOUNT_POINT}/${PREFIX}misc/media/archived/ /home/storage/misc/media/archived
+    fi
 
     if [[ ${LABEL} != "storage-04" ]]; then
+        rsync ${RSYNC_ARGS} \
+            /home/storage/misc/media/audio/ ${MOUNT_POINT}/${PREFIX}misc/media/audio
+
         rsync ${RSYNC_ARGS} \
             /home/storage/root/ ${MOUNT_POINT}/${PREFIX}root
 
