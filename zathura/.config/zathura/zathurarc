@@ -1,22 +1,27 @@
 # Default font
 set font "JetBrainsMono Nerd Font 12"
 
+# Size
+set window-width 1440
+set window-height 900
+
 # Colors
 set statusbar-bg "rgb(25, 40, 44)"
 set statusbar-fg "rgb(235, 219, 178)"
 set inputbar-bg "rgb(29, 32, 33)"
 set inputbar-fg "rgb(235, 219, 178)"
 set default-bg "rgba(29, 32, 33, 1)"
-set highlight-color "rgba(100, 255, 100, 0.50)"
-set highlight-active-color "rgba(255, 100, 100, 0.50)"
+set highlight-color "rgba(100, 255, 100, 0.40)"
+set highlight-active-color "rgba(255, 100, 100, 0.10)"
 set recolor-lightcolor "rgb(40, 40, 40)"
 set recolor-darkcolor "rgb(235, 219, 178)"
 set recolor-keephue
 
 set abort-clear-search true
 set adjust-open best-fit
-set guioptions ''
-set page-padding 2
+set database null
+set guioptions ""
+# set page-padding 2
 set render-loading false
 set scroll-full-overlap 0.01
 set scroll-page-aware true

@@ -57,7 +57,13 @@ map("n", "<leader>h", "<cmd>lua require('telescope.builtin').help_tags()<cr>", o
 -- toggle background
 map("n", "<localleader>t", "<cmd>lua toggle_background()<cr>", opts)
 
+-- Make compile
+map("n", "<F8>", "<cmd>lua git_biber()<cr>", opts)
 map("n", "<F9>", "<cmd>lua git_compile()<cr>", opts)
+
+-- Vimtex
+map("n", "<F10>", "<cmd>VimtexCompile<cr>", opts)
+map("n", "<F11>", "<cmd>VimtexView<cr>", opts)
 
 -- toggle list
 -- map("n", "<localleader>t", "<cmd>set list!<cr>", opts)

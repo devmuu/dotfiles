@@ -41,7 +41,7 @@ local options = {
     textwidth = 0,
     updatetime = 50,
     wrap = true,
-    guifont = { "JetbrainsMono Nerd Font:15" },
+    guifont = { "JetBrainsMono Nerd Font:15" },
 }
 
 for k, v in pairs(options) do

@@ -58,7 +58,7 @@ return {
     --         -- VimTeX configuration goes here
     --         vim.g.vimtex_view_method = "zathura"
     --         vim.g.vimtex_compiler_method = "generic"
-    --         vim.g.vimtex_compiler_generic = { command = "make distrobox" }
+    --         vim.g.vimtex_compiler_generic = { command = "distrobox enter archlinux -- make synctex" }
     --         vim.g.Tex_DefaultTargetFormat = "pdf"
     --         vim.g.vimtex_view_enabled = 1
     --         vim.g.vimtex_view_automatic = 1
@@ -146,7 +146,12 @@ return {
 
     -- eletro colors
     {
-        "devmuu/eletro-colors",
-        lazy = false
+       dir = vim.env.NVIM_PLUGIN_DIR .. "/eletro-colors",
+       name = "eletro-colors",
+       lazy = false,
     },
+    -- {
+    --     "devmuu/eletro-colors",
+    --     lazy = false
+    -- },
 }

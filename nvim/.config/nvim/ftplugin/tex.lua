@@ -45,3 +45,6 @@ augroup latex_file
   inoremap ;doc \begin{document}<CR>\end{document}<esc>Vk3<o<space>
 augroup END
 ]]
+
+-- Disable texOnlyMath error when use expl3 syntax
+vim.api.nvim_set_hl(0, "texOnlyMath", {})
