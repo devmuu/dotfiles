@@ -28,10 +28,15 @@
         "temperature",
         "network",
         "battery",
-        "custom/keyboard"
+        "hyprland/language"
     ],
 
     // hyprland modules
+    "hyprland/language": {
+        "format-en": "🇺🇸",
+        "format-en-alt-intl": "🇧🇷"
+    },
+
    "hyprland/window": {
         "format": "{initialTitle}@@{class}@@{initialClass}"
     },
